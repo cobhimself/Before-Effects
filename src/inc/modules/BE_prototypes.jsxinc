@@ -1,0 +1,168 @@
+/**
+* @fileoverview The Before Effects prototype module adds methods to built-in
+* JavaScript and ExtendScript objects if they don't exist. Additional prototypes that will be included in a later
+* release are listed under the todo section.
+* @author Collin D. Brooks <collin.brooks@gmail.com>
+* @version 0.1.0 dev
+* TODO:
+* Add the following prototypes to the Array Object based upon the standards within ECMA-262 5th edition:
+* Array.prototype.isArray (
+* Array.prototype.indexOf (15.4.4.14)
+* Array.prototype.lastIndexOf (15.4.4.15)
+* Array.prototype.every (15.4.4.16)
+* Array.prototype.some (15.4.4.17)
+* Array.prototype.forEach (15.4.4.18)
+* Array.prototype.map (15.4.4.19)
+* Array.prototype.reduce (15.4.4.21)
+* Array.prototype.reduceRight (15.4.4.22)
+*
+* Add the following prototypes to the String Object based upon the standards within ECMA-262 5th edition:
+* 
+*/
+
+//See if BE is already defined
+BE = BE || {};
+
+/*****************************************************************************\
+* >>> Array Prototypes
+\*****************************************************************************/
+
+if (!Array.hasOwnProperty("inArray")) {
+    BE.LOG.debug("Defining Array.inArray()");
+    /**
+     * Determines whether or not a given value is within a given array
+     * @param {Any} needle The needle to search for
+     * @param {Array} haystack The array (haystack) to search for the needle in.
+     * @return {Bool} True if the needle is found, false if it isn't
+     */
+    Array.prototype.inArray = function (needle, haystack) {
+        var i;
+        for (i in haystack)
+        {
+            if (haystack[i] === needle)
+            {
+                return true;
+            }
+        }
+        return false;
+    };
+}
+
+if (!Array.hasOwnProperty("filter")) {
+    /**
+     * Filters an array based upon a filter function.
+     * @param {Array} a The array to filter
+     * @param {Function} f The function to use when filtering the array. If the
+     * function returns true, the item in the array is included in the final
+     * filtered list. If it is false, it is ignored. This function should allow
+     * for one argument only.
+     * @returns {Array}
+     *TODO:
+     * Needs to conform to ECMA-262 5th edition (15.4.4.20)
+     */
+    Array.prototype.filter = function (a, f) {
+        var newArray, i;
+        for (i in a)
+        {
+            if (f(i))
+            {
+                newArray[newArray.length] = i;
+            }
+        }
+        return newArray;
+    };
+}
+
+/*****************************************************************************\
+* >>> String Prototypes
+\*****************************************************************************/
+
+if (!String.hasOwnProperty("trim")) {
+	/**
+	 * Removes white space at the beginning & end of a string
+	 * @returns {String} A string without whitespace at the end or beginning
+     * TODO:
+     * Verify conformity with ECMA-262 5th edition (15.5.4.20)
+	 */
+	String.prototype.trim = function () {
+		return this.replace(/^\s*/, "").replace(/\s*$/, "");
+	}
+}
+
+/*****************************************************************************\
+* >>> ItemCollection Prototypes
+\*****************************************************************************/
+
+if (!ItemCollection.hasOwnProperty("inItemCollection")) {
+
+    /**
+     *Determines whether or not a given name matches any of the Item names in
+     *the given ItemCollection. After Effect's ItemCollection is like an array
+     *but is not. Unfortunately, this means (beside the fact that the inArray
+     *function is currently not supported by default) there is no default way
+     *finding whether or not an item exists within a given collection.
+     *@param {String} n The name to search for within the ItemCollection
+     *@param {ItemCollection} coll The ItemCollection to search.
+     *@param {Bool} dupDetect True to make sure the given name is only found
+     *once. False to ignore whether or not there are multiple Items with the
+     *given name.
+     *@returns {Bool|null} If <code>dupDetect</code> is false, and at least one
+     *item with the given name is found, true is returned. If
+     *<code>dupDetect</code> is true, and only one item with the given name is
+     *found, true is returned. False is returned when an Item with the given
+     *name cannot be found at all. Null is returned when <code>dupDetect</code>
+     *is set to true and multiple Items are found with the given name.
+     *
+     *TODO:
+     *-Allow for more specific duplicate detection based upon the type of the
+     *item
+     */
+    ItemCollection.prototype.inItemCollection = function (n, coll, dupDetect) {
+        var i,
+        index = {};
+
+        if (!dupDetect)
+        {
+            dupDetect = false;
+        }
+        
+        for (i = 1; i <= coll.length; i += 1) {
+
+            //Keep track of the items?
+            if (dupDetect) {
+                if (index[i])
+                {
+                    //Item exists already, return null
+                    return null;
+                } else {
+                    index[i] = coll[i].name;
+                }
+            }
+
+            //Does the current Item have the given name?
+            if (coll[i].name === n) {
+                return true;
+            }
+
+        }
+        return false;
+    };
+}
+
+/*****************************************************************************\
+* >>> ListItem Prototypes
+\*****************************************************************************/
+
+
+if (!ListItem.hasOwnProperty("data")) {
+    /**
+     * Provides a place where information about each ListItem element can be
+     * stored. This is useful if you want references to actual Objects that
+     * the ListItems reflect. For example, each list item could have their
+     * text set to the name of a composition and a reference to that composition
+     * could be saved within the data object of the ListItem.
+     * @type {Object}
+     */
+    ListItem.prototype.data = {};
+}
+

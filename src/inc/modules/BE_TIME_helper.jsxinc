@@ -1,0 +1,24 @@
+/**
+* @fileoverview The Before Effects TIME helper module. This module adds methods
+* that aid in working with time After EFfects.
+* @author Collin D. Brooks <collin.brooks@gmail.com>
+* @version 0.1.0 dev
+*/
+
+//See if BE is already defined
+BE = BE || {};
+
+/*****************************************************************************\
+* >>> TIME Helper
+\*****************************************************************************/
+
+/**
+ *Contains time helper methods that provide more functionality than the
+ *original AE API.
+ *@namespace
+ *@extends BE
+ *@see BE
+ */
+BE.TIME_helper = {
+    version: "0.1.0 dev"
+};

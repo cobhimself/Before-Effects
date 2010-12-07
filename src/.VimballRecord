@@ -1,0 +1,1 @@
+hilinks.vba.gz: call delete('/Users/collinbrooks/Dropbox/vim/.vim/plugin/hilinks.vba.gz/plugin/hilinks.vim')|call delete('/Users/collinbrooks/Dropbox/vim/.vim/plugin/hilinks.vba.gz/doc/hilinks.txt')

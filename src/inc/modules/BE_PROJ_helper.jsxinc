@@ -1,0 +1,527 @@
+/**
+* @fileoverview The Before Effects PROJ helper module. This module adds methods
+* that aid in working with After EFfects projects.
+* @author Collin D. Brooks <collin.brooks@gmail.com>
+* @version 0.1.0 dev
+*/
+
+//See if BE is already defined
+BE = BE || {};
+
+/*****************************************************************************\
+* >>> PROJ Helper
+\*****************************************************************************/
+
+/**
+ *Contains project helper methods that provide more functionality than the
+ *original AE API.
+ *@extends BE
+ *@see BE
+ *@namespace
+ */
+BE.PROJ_helper = {
+    version: "0.1.0 dev"
+};
+
+/**
+ *The list of compositions that have been found within the project.
+ *By caching the list of the project's compositions, we can more quickly
+ *act upon this data without having to traverse the project's items. You
+ *should only use this when you know that there is no way a composition
+ *could have been added.
+ *@type {CompItem[]}
+ */
+BE.PROJ_helper.compositionCache = [];
+
+/**
+ *The list of footage items that have been found within the project.
+ *By caching the list of the project's footage items, we can more quickly
+ *act upon this data without having to traverse the project's items. You
+ *should only use this when you know that there is no way a footage item
+ *could have been added.
+ *@type {AVItem[]}
+ */
+BE.PROJ_helper.footageCache = [];
+
+/**
+ *An array of items collected by the getItemList method and that have been
+ *found within the project.
+ *By caching the list of the items returned, we can more quickly
+ *act upon this data without having to traverse the project's items. You
+ *should only use this when you know what is in the cache and that
+ *there is no way a any items could have been added.
+ *@type {AVItem[]}
+ */
+BE.PROJ_helper.itemCache = [];
+
+///**
+// *TODO
+// *An array of items collected by the getItemList method and that have been
+// *found within the project.
+// *By caching the list of the items returned, we can more quickly
+// *act upon this data without having to traverse the project's items. You
+// *should only use this when you know what is in the cache and that
+// *there is no way a any items could have been added.
+// *@type {AVItem[]}
+// */
+//BE.PROJ_helper.itemCache = [];
+
+/**
+ *Grab the current active project if there is one.
+ *
+ *NOTE: Make sure to check whether or not this method returns false.
+ *
+ *@returns {Bool|ProjectItem} False if the project is not defined or
+ *the ProjectItem that is currently active.
+ */
+BE.PROJ_helper.getProject = function () {
+	return (app.project === null ||
+			app.project === undefined) ? false: app.project;
+};
+
+
+/**
+ *Returns whether or not a composition with the given name exists.
+ *@param {String} n The name of the composition to search for
+ *@param {Bool} [c=false] Whether or not to use the compositionCache value. Useful
+ *when you have recently traversed the project to find all of the
+ *composition items and you know none have been added since then.
+ *@returns {Bool|null} True if the composition exists, false if it doesn't.
+ *null if there is not a project defined.
+ */
+BE.PROJ_helper.compExists = function (n, c) {
+	c = c || false;
+	var p = BE.PROJ_helper.getProject(),
+		l = BE.PROJ_helper.getCompList(c);
+
+	if (p !== null)
+	{
+		return l.inArray(n, l);
+	} else {
+		return null;
+	}
+};
+
+/**
+ *Returns whether or not there is an item with the given name within the
+ *project's items.
+ *@param {String} n The name of the composition to search for
+ *@param {Bool} [c=false] Whether or not to use the compositionCache value.
+ *Useful when you have recently traversed the project to find all of the
+ *composition items and you know none have been added since then.
+ *@param {Bool} [d=false] True to make sure the given name is only found
+ *once. False to ignore whether or not there are multiple Items with the
+ *given name.
+ *@returns {Bool|null} True if the composition exists, false if it doesn't.
+ *null if there is not a project defined.
+ *@throws UndefinedProject if a project cannot be defined.
+ *
+ *TODO:
+ *-Implement the cache system
+ */
+BE.PROJ_helper.itemExists = function (n, c, d) {
+	c = c || false;
+	d = d || false;
+
+	var p = BE.PROJ_helper.getProject(),
+		l = BE.PROJ_helper.getItemList();
+
+	if (p !== null && l !== false)
+	{
+		return l.inItemCollection(n, l, d);
+	} else {
+		BE.alertError({
+name: 'UndefinedProject',
+message: 'Could not check to see if an item exists because ' +
+'no project is defined!',
+fileName: BE.scriptName
+});
+return false;
+}
+};
+
+/**
+ *Get the project's active item. This could be a CompItem, AVItem,
+ *FolderItem, etc. Use getActiveComp to get the active composition.
+ *
+ *@return {Bool|Item} False if there is no active item or the currently
+ *active item within the project.
+ */
+BE.PROJ_helper.getActiveItem = function () {
+	var p = BE.PROJ_helper.getProject();
+	if (p !== false)
+	{
+		return (p.activeItem === null ||
+				p.activeItem === undefined) ? false : p.activeItem;
+	} else {
+		return false;
+	}
+};
+
+/**
+ *Get the project's active composition.
+ *
+ *@return {Bool|Item} False if there is no active item or the currently
+ *active item within the project.
+ */
+BE.PROJ_helper.getActiveComp = function () {
+	var p = BE.PROJ_helper.getProject();
+	if (p !== false)
+	{
+		return (p.activeItem === null ||
+				p.activeItem === undefined ||
+				!(p.activeItem instanceof CompItem)) ? false : p.activeItem;
+	} else {
+		return false;
+	}
+};
+
+/**
+ *Get the Item object that has the given identifier id.
+ *@param {Int} id The unique identifier id of the item within the project.
+ *@returns {Item|Bool} Returns the Item that has the given id or false if
+ *the checks within the getItemList or getProject methods fail.
+ */
+BE.PROJ_helper.getItemById = function (id) {
+	var items = BE.PROJ_helper.getItemList(), i;
+
+	for(i = 1; i < items.length; i += 1)
+	{
+		if (items[i].id === id) {
+			return items[i];
+		}
+	}
+	return false;
+};
+
+/**
+ *Convenience function that makes sure a project and/or an activeItem are
+ *defined. If both are undefined, false is returned. If one or the other
+ *is undefined, false is returned as the value within the returned array.
+ *@return {Bool|Array} A zero based array containing a reference to the
+ *project object and activeItem respectively or False if proj and activeItem
+ *are undefined.
+ *@example
+ *if (v = BE.PROJ_helper.verifyProjAndActiveItem()) {
+ *  proj = v[0];
+ *  comp = v[1];
+ *}
+ */
+BE.PROJ_helper.verifyProjAndActiveItem = function () {
+	var proj = BE.PROJ_helper.getProject(),
+		aItem = BE.PROJ_helper.getActiveComp();
+	BE.LOG.debug("Active Comp " + aItem.name);
+	if (!proj && !aItem)
+	{
+		BE.LOG.debug(BE.ERROR.NO_OPEN_PROJECT);
+		return false;
+	} else {
+		return [proj, aItem];
+	}
+};
+
+/**
+ * Gathers an array of compositions that are within the project.
+ * @param {Bool} c Whether or not to use the cached array of the project's
+ * compositions. This is useful when you are calling this method back to
+ * back and you don't need to grab the current list of compositions.
+ * @return {CompItem[]|Bool} If there were no errors, an array of
+ * compositions is returned. Otherwise, false is returned.
+ */
+BE.PROJ_helper.getCompList = function (c)
+{
+	BE.LOG.debug("Getting Comp List");
+	var p, i, v, comps = [], list, refillCache = false,
+		//Because app.project.items is stupid and its index is 1 based,
+		//and because we are possibly going to be using the cache array
+		//(which is 0 based), we need to create a variable that keeps track
+		//of what our index offset should be. Default is 1 for non-cache
+		//lists.
+		indexOffset = 1;
+
+	v = BE.PROJ_helper.verifyProjAndActiveItem();
+
+	if (v && v[0])
+	{
+		p = v[0];
+
+		//Determine whether or not to use the cached values or not.
+		if (c && BE.PROJ_helper.compositionCache.length !== 0)
+		{
+			BE.LOG.debug("Using compositionCache!");
+			list = BE.PROJ_helper.compositionCache;
+			indexOffset = 0; //The cache is zero based
+		} else {
+			list = p.items;
+
+			//Clear the composition cache since we are going to traverse the
+			//items within the project
+			BE.PROJ_helper.compositionCache = [];
+			refillCache = true;
+		}
+
+		BE.LOG.debug("Current Project: " + p.name);
+
+		BE.LOG.debug("Going through the list of items: Length = " +
+				list.length);
+		for (i = 0; i < list.length; i += 1)
+		{
+			BE.LOG.write(BE.LOG.types.DEBUG,
+					"Item " + (i + indexOffset) + ":" +
+					list[i + indexOffset].typeName + " " +
+					list[i + indexOffset].name);
+			if (list[i + indexOffset] instanceof CompItem)
+			{
+				comps.push(list[i + indexOffset]);
+
+				if (refillCache)
+				{
+					BE.PROJ_helper.compositionCache.push(
+							list[i + indexOffset]);
+				}
+			}
+		}
+		BE.LOG.debug("Returning " +
+				comps.length + " compositions.");
+		return comps;
+	} else {
+		return false;
+	}
+};
+
+/**
+ * Grab the first composition found in the project's items
+ * with the given name.
+ * @returns {CompItem|null} Returns the first composition that is found
+ * within the project with the given name or null if none is found.
+ */
+BE.PROJ_helper.getCompByName = function (n)
+{
+	var p = BE.PROJ_helper.getProject(),
+		i;
+
+	if (p !== null)
+	{
+		for (i = 1; i <= p.items.length; i += 1)
+		{
+			if (p.items[i] instanceof CompItem &&
+					p.items[i].name === n)
+			{
+				return p.items[i];
+			}
+		}
+
+		return null;
+
+	} else {
+		throw (new Error("UndefinedProject Error: Could not get " +
+					"Could not get composition by name because no project is " +
+					"defined!"));
+	}
+};
+
+/**
+ * Grab the first project item found with the given name.
+ * @returns {Item|null} Returns the first project item that is found
+ * within the project with the given name or null if none is found.
+ */
+BE.PROJ_helper.getItemByName = function (n)
+{
+	var p = BE.PROJ_helper.getProject(),
+		i;
+
+	if (p !== null)
+	{
+		for (i = 1; i <= p.items.length; i += 1)
+		{
+			if (p.items[i].name === n)
+			{
+				return p.items[i];
+			}
+		}
+
+		return null;
+
+	} else {
+		throw (new Error("UndefinedProject Error: Could not get " +
+					"composition by name because no project is defined!"));
+	}
+};
+
+/**
+ * Grab the first folder found in the project's items
+ * with the given name.
+ * @returns {FolderItem|null} Returns the first folder that is found
+ * within the project with the given name or null if none is found.
+ */
+BE.PROJ_helper.getFolderByName = function (n)
+{
+	BE.LOG.debug("Getting folder by name: " + n);
+
+	var p = BE.PROJ_helper.getProject(),
+		i;
+
+	if (p !== null)
+	{
+
+		for (i = 1; i <= p.items.length; i += 1)
+		{
+			if (p.items[i] instanceof FolderItem &&
+					p.items[i].name === n)
+			{
+				return p.items[i];
+			}
+		}
+
+		return null;
+
+	} else {
+		BE.LOG.write(BE.LOG.types.WARN, "Project is null!");
+		throw (new Error("UndefinedProject Error: Could not get folder " +
+					"by name because no project is defined!"));
+	}
+};
+
+/**
+ * Gathers an array of footage items that are within the project.
+ * @param {Bool} c Whether or not to use the cached array of the project's
+ * footage items. This is useful when you are calling this method back to
+ * back and you don't need to grab the current list of footage items.
+ * @return {AVItem[]|Bool} If there were no errors, an array of footage
+ * items is returned. Otherwise, false is returned.
+ */
+BE.PROJ_helper.getFootageList = function (c)
+{
+	BE.LOG.debug("Getting Footage List");
+
+	var p = BE.PROJ_helper.getProject(),
+		i,
+		footage = [],
+		list,
+		refillCache = false,
+
+		//Because app.project.items is stupid and its index is 1 based,
+		//and because we are possibly going to be using the cache array
+		//(which is 0 based), we need to create a variable that keeps track
+		//of what our index offset should be. Default is 1 for non-cache
+		//lists.
+		indexOffset = 1;
+
+	//Determine whether or not to use the cached values or not.
+	if (c && BE.PROJ_helper.footageCache.length !== 0)
+	{
+		BE.LOG.debug("Using footageCache!");
+		list = BE.PROJ_helper.footageCache;
+
+		indexOffset = 0; //The cache is zero based
+	} else {
+		list = p.items;
+
+		//Clear the composition cache since we are going to traverse the
+		//items within the project
+		BE.PROJ_helper.footageCache = [];
+		refillCache = true;
+	}
+
+	BE.LOG.debug("Current Project: " + p.name);
+	if (p !== false)
+	{
+		BE.LOG.write(BE.LOG.types.DEBUG,
+				"Going through the list of items:");
+		for (i = 0; i < list.length; i += 1)
+		{
+			BE.LOG.debug("Item " + (i + indexOffset) +
+					":" + list[i + indexOffset].typeName + " " +
+					list[i + indexOffset].name);
+			if (list[i + indexOffset] instanceof AVItem)
+			{
+				footage.push(list[i + indexOffset]);
+
+				if (refillCache)
+				{
+					BE.PROJ_helper.footageCache.push(
+							list[i + indexOffset]);
+				}
+			}
+		}
+		BE.LOG.write(BE.LOG.types.DEBUG,
+				"Returning " + footage.length + " footage items.");
+		return footage;
+	} else {
+		BE.LOG.write(BE.LOG.types.DEBUG,
+				"No project defined. Returning false");
+		return false;
+	}
+
+};
+
+/**
+ *Get an optionally filtered list of the items within the active project.
+ *@param {String|Array} [items] The typeName (or an array of typeNames)of
+ *the Item to include in the returned values.
+ *
+ *Example: "Composition", "Folder", "Footage"
+ *@param {Bool} c Whether or not to utilize the cached items that were found
+ *when this method was previously executed.
+ *@returns {Array} A 0 based array of the filtered items.
+ */
+BE.PROJ_helper.getItemList = function (items, c) {
+	var p = BE.PROJ_helper.getProject(),
+		i,
+		collection = [];
+
+	//Because app.project.items is stupid and its index is 1 based,
+	//and because we are possibly going to be using the cache array
+	//(which is 0 based), we need to create a variable that keeps track
+	//of what our index offset should be. Default is 1 for non-cache
+	//lists.
+	//indexOffset = 1;
+
+	//Is a project open?
+	if (p !== false)
+	{
+		//Does the user want to filter the list?
+		if (items)
+		{
+			//If i is a String, make it an array.
+			if (items instanceof String)
+			{
+				items = [items];
+			}
+
+			//Get the list of items in the project
+			for (i = 1; i <= p.items.length; i += 1)
+			{
+				//See if the current item is in the array that was sent.
+				if (items.inArray(p.items[i].typeName, items))
+				{
+					collection.push(p.items[i]);
+				}
+			}
+		} else {
+			collection = p.items;
+		}
+
+		return collection;
+
+	} else {
+		return false;
+	}
+};
+
+/**
+ *Removes whitespace at the start and end of the name(s) of the
+ *provided item(s).
+ *@param {Items[]} theItems An array of project Items whose name should be trimmed.
+ *@returns {Project} The current project. Useful for chainging.
+ */
+BE.PROJ_helper.trimItemName = function (theItems) {
+	var i;
+
+	if (theItems.length !== 0)
+	{
+		for (i = 0; i < theItems.length; i += 1) {
+			theItems[i].name = theItems[i].name.trim();
+		}
+	}
+}
