@@ -1,6 +1,7 @@
 Before Effects
 ==============
 
+Before Effects is currently under development. The current version is 0.1.0 dev.
 BeforeEffects is a collection of useful extensions/methods to the built-in
 JavaScript Object Model as well as to available Objects provided by the After
 Effects Object Model within ExtendScript. The goal is to speed up script
