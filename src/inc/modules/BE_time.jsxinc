@@ -19,6 +19,6 @@ BE = BE || {};
  *@extends BE
  *@see BE
  */
-BE.TIME_helper = {
+BE.time = {
     version: "0.1.0 dev"
 };

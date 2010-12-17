@@ -28,12 +28,13 @@ BE = BE || {};
 \*****************************************************************************/
 
 if (!Array.hasOwnProperty("inArray")) {
-    BE.LOG.debug("Defining Array.inArray()");
+    BE.log.debug("Defining Array.inArray()");
     /**
      * Determines whether or not a given value is within a given array
      * @param {Any} needle The needle to search for
      * @param {Array} haystack The array (haystack) to search for the needle in.
      * @return {Bool} True if the needle is found, false if it isn't
+     * TODO: Verify the haystack is truly an Array Object!
      */
     Array.prototype.inArray = function (needle, haystack) {
         var i;
@@ -61,7 +62,7 @@ if (!Array.hasOwnProperty("filter")) {
      * Needs to conform to ECMA-262 5th edition (15.4.4.20)
      */
     Array.prototype.filter = function (a, f) {
-        var newArray, i;
+        var newArray = [], i;
         for (i in a)
         {
             if (f(i))
@@ -93,7 +94,7 @@ if (!String.hasOwnProperty("trim")) {
 * >>> ItemCollection Prototypes
 \*****************************************************************************/
 
-if (!ItemCollection.hasOwnProperty("inItemCollection")) {
+/*if (ItemCollection !== undefined && !ItemCollection.hasOwnProperty("inItemCollection")) {*/
 
     /**
      *Determines whether or not a given name matches any of the Item names in
@@ -117,44 +118,44 @@ if (!ItemCollection.hasOwnProperty("inItemCollection")) {
      *-Allow for more specific duplicate detection based upon the type of the
      *item
      */
-    ItemCollection.prototype.inItemCollection = function (n, coll, dupDetect) {
-        var i,
-        index = {};
+    /*ItemCollection.prototype.inItemCollection = function (n, coll, dupDetect) {*/
+        /*var i,*/
+        /*index = {};*/
 
-        if (!dupDetect)
-        {
-            dupDetect = false;
-        }
+        /*if (!dupDetect)*/
+        /*{*/
+            /*dupDetect = false;*/
+        /*}*/
         
-        for (i = 1; i <= coll.length; i += 1) {
+        /*for (i = 1; i <= coll.length; i += 1) {*/
 
-            //Keep track of the items?
-            if (dupDetect) {
-                if (index[i])
-                {
-                    //Item exists already, return null
-                    return null;
-                } else {
-                    index[i] = coll[i].name;
-                }
-            }
+            /*//Keep track of the items?*/
+            /*if (dupDetect) {*/
+                /*if (index[i])*/
+                /*{*/
+                    /*//Item exists already, return null*/
+                    /*return null;*/
+                /*} else {*/
+                    /*index[i] = coll[i].name;*/
+                /*}*/
+            /*}*/
 
-            //Does the current Item have the given name?
-            if (coll[i].name === n) {
-                return true;
-            }
+            /*//Does the current Item have the given name?*/
+            /*if (coll[i].name === n) {*/
+                /*return true;*/
+            /*}*/
 
-        }
-        return false;
-    };
-}
+        /*}*/
+        /*return false;*/
+    /*};*/
+/*}*/
 
 /*****************************************************************************\
 * >>> ListItem Prototypes
 \*****************************************************************************/
 
 
-if (!ListItem.hasOwnProperty("data")) {
+if (ListItem !== undefined && !ListItem.hasOwnProperty("data")) {
     /**
      * Provides a place where information about each ListItem element can be
      * stored. This is useful if you want references to actual Objects that

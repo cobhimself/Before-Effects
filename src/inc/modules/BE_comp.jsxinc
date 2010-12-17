@@ -19,7 +19,7 @@ BE = BE || {};
  *@extends BE
  *@see BE
  */
-BE.COMP_helper = {
+BE.comp = {
 	version: "0.1.0 dev"
 };
 
@@ -33,7 +33,7 @@ BE.COMP_helper = {
  *Example: 'LightLayer', 'AVLayer', 'CameraLayer', 'ShapeLayer'
  *@return {String[]} An array of the names of the layers within the comp.
  */
-BE.COMP_helper.getLayerNames = function (c, f)
+BE.comp.getLayerNames = function (c, f)
 {
 	var i, names = [], currentLayer, noFilter,
 		r = new Regex("/^\[object (.+)\]/");
@@ -65,11 +65,11 @@ BE.COMP_helper.getLayerNames = function (c, f)
  *Example: 'LightLayer', 'AVLayer', 'CameraLayer', 'ShapeLayer'
  *@return {Layer[]} An array of the layers within the given comp.
  */
-BE.COMP_helper.getFilteredLayers = function (c, f)
+BE.comp.getFilteredLayers = function (c, f)
 {
-	BE.LOG.debug("Getting filtered Layers...");
-	BE.LOG.debug("Comp Name: " + c.name);
-	BE.LOG.debug("Filter: " + f.toString());
+	BE.log.debug("Getting filtered Layers...");
+	BE.log.debug("Comp Name: " + c.name);
+	BE.log.debug("Filter: " + f.toString());
 	var i, names = [], currentLayer, noFilter,
 		r = /^\[object\ (.+)\]/, currentType;
 
@@ -78,20 +78,20 @@ BE.COMP_helper.getFilteredLayers = function (c, f)
 	for (i = 1; i <= c.numLayers; i += 1)
 	{
 		currentLayer = c.layer(i);
-		BE.LOG.debug("Current Layer: " + currentLayer.name);
+		BE.log.debug("Current Layer: " + currentLayer.name);
 		currentType = r.exec(currentLayer.toString())[1];
-		BE.LOG.debug("Current type: " + currentType);
+		BE.log.debug("Current type: " + currentType);
 		if (!noFilter && currentType)
 		{
 			if ( f.inArray(currentType, f)) {
-				BE.LOG.debug("Adding " + currentLayer.name + " to list");
+				BE.log.debug("Adding " + currentLayer.name + " to list");
 				names.push(currentLayer.name);
 			}
 		} else {
 			names.push(currentLayer.name);
 		}
 	}
-	BE.LOG.debug("Returning " + names.length + " layers");
+	BE.log.debug("Returning " + names.length + " layers");
 	return names;
 };
 
@@ -107,10 +107,10 @@ BE.COMP_helper.getFilteredLayers = function (c, f)
  *selectedProperties: An array of the properties that are selected in
  *this layer.
  */
-BE.COMP_helper.getAllSelectedProperties = function(c)
+BE.comp.getAllSelectedProperties = function(c)
 {
-	BE.LOG.debug("Getting All Selected Properties...");
-	BE.LOG.debug("Using Comp: " + c.name);
+	BE.log.debug("Getting All Selected Properties...");
+	BE.log.debug("Using Comp: " + c.name);
 
 	var currentLayer, i, props = [],
 		/**
@@ -127,31 +127,31 @@ BE.COMP_helper.getAllSelectedProperties = function(c)
 		 *@type {Object}
 		 */
 		theObj;
-	BE.LOG.debug("Num Layers: " + c.numLayers);
+	BE.log.debug("Num Layers: " + c.numLayers);
 	for (i = 1; i <= c.numLayers; i += 1)
 	{
 		currentLayer = c.layer(i);
 		if (currentLayer.selectedProperties.length !== 0)
 		{
-			BE.LOG.debug("Current Layer [" + i + "]: " + currentLayer.name);
-			BE.LOG.debug("Props.length: " + props.length);
+			BE.log.debug("Current Layer [" + i + "]: " + currentLayer.name);
+			BE.log.debug("Props.length: " + props.length);
 			theObj = {
 				"parent": c,
 				"layer": currentLayer,
 				"selectedProperties": currentLayer.selectedProperties
 			};
-			BE.LOG.debug("Selected Properties: " + currentLayer.selectedProperties.length);
+			BE.log.debug("Selected Properties: " + currentLayer.selectedProperties.length);
 			props.push(theObj);
-			BE.LOG.debug("Props.length updated: " + props.length);
+			BE.log.debug("Props.length updated: " + props.length);
 		}
 	}
 
 	if (props.length !== 0)
 	{
-		BE.LOG.debug("Returning props array");
+		BE.log.debug("Returning props array");
 		return props;
 	} else {
-		BE.LOG.debug("Returning False");
+		BE.log.debug("Returning False");
 		return false;
 	}
 }

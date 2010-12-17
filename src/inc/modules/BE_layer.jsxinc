@@ -15,7 +15,7 @@ BE = BE || {};
  *@extends BE
  *@see BE
  */
-BE.LAYER_helper = {
+BE.layer = {
     version: "0.1.0 dev"
 };
 
@@ -26,7 +26,7 @@ BE.LAYER_helper = {
  * @param {String|Int} txt The text to add as the marker's comment value
  * @return {Layer} The layer that was sent. Useful for chainging.
  */
-BE.LAYER_helper.addMarker = function (l, time, txt)
+BE.layer.addMarker = function (l, time, txt)
 {
 	l.property("Marker").setValueAtTime(time, new MarkerValue(txt));
     return l;
@@ -38,7 +38,7 @@ BE.LAYER_helper.addMarker = function (l, time, txt)
  * @param {Int} index The index of the marker to delete
  * @return {Layer} The layer that was sent. Useful for chainging.
  */
-BE.LAYER_helper.deleteMarker = function (l, index)
+BE.layer.deleteMarker = function (l, index)
 {
 	l.property("Marker").removeKey(index);
     return l;
@@ -53,7 +53,7 @@ BE.LAYER_helper.deleteMarker = function (l, index)
  * @return {Bool|Int} False if 'markerText' does not match any comments
  * within the 'l' layer's markers. The index if a match is found.
  */
-BE.LAYER_helper.findMarkerIndex = function (l, markerText)
+BE.layer.findMarkerIndex = function (l, markerText)
 {
 	var i;
 
@@ -79,11 +79,11 @@ BE.LAYER_helper.findMarkerIndex = function (l, markerText)
  * @returns {String} The time of the marker found at the given index in the
  * current user time format.
  */
-BE.LAYER_helper.getMarkerTime = function (l, markerIndex)
+BE.layer.getMarkerTime = function (l, markerIndex)
 {
-	BE.LOG.debug("Layer: " + l.name + "; Marker Index: " + markerIndex);
-	BE.LOG.debug("Actual time: " + l.property("Marker").keyTime(markerIndex));
-	BE.LOG.debug("getMarkerTime returns " + timeToCurrentFormat(l.property("Marker").keyTime(markerIndex),
+	BE.log.debug("Layer: " + l.name + "; Marker Index: " + markerIndex);
+	BE.log.debug("Actual time: " + l.property("Marker").keyTime(markerIndex));
+	BE.log.debug("getMarkerTime returns " + timeToCurrentFormat(l.property("Marker").keyTime(markerIndex),
 				l.containingComp.frameRate,
 				true
 				));
@@ -100,7 +100,7 @@ BE.LAYER_helper.getMarkerTime = function (l, markerIndex)
  *@param {LayerItem} l The layer to get the inPoint time from.
  *@returns
  */
-BE.LAYER_helper.getLayerInPoint = function (l) {
+BE.layer.getLayerInPoint = function (l) {
 	return timeToCurrentFormat(l.inPoint, l.containingComp.frameRate);
 };
 
@@ -110,6 +110,6 @@ BE.LAYER_helper.getLayerInPoint = function (l) {
  *@param {LayerItem} l The layer to get the outPoint time from.
  *@returns
  */
-BE.LAYER_helper.getLayerOutPoint = function (l) {
+BE.layer.getLayerOutPoint = function (l) {
 	return timeToCurrentFormat(l.outPoint, l.containingComp.frameRate);
 };
