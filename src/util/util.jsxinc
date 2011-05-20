@@ -1,20 +1,21 @@
 /**
-* @fileoverview The Before Effects SettingsManager module. This module adds methods
+* @fileoverview The Before Effects util module. This module adds general util methods
 * that aid in working with After EFfects settings that would normall be accessed
 * through app.settings.
 * @author Collin D. Brooks <collin.brooks@gmail.com>
 * @version 0.1.0 dev
 */
 
-//See if BE is already defined
-BE = BE || {};
+BE.provide('BE.util.SettingsManager');
+
+BE.require('BE.log');
 
 /**
  * Provides a way to easily store and retrieve settings that After Effects
  * should save. Settings are automatically saved on <code>set</code> and loaded
  * on <code>get</code>.
  * @example
- *   var settingsManager = BE.SettingsManager("My Script Name",
+ *   var settingsManager = BE.util.SettingsManager("My Script Name",
  *       {
  *           "settingOne": "Setting One Value",
  *           "settingTwo": "Setting Two Value"
@@ -29,23 +30,26 @@ BE = BE || {};
  * @param {Object} settings An Object filled with key/value pairs to be saved
  * within After Effect's settings. If this argument is not provided, settings
  * will need to be added by using the <code>add<code> method.
- * @returns {SettingsManager} A BE.SettingsManager.
+ * @returns {SettingsManager} A BE.util.SettingsManager.
  * @constructor
  */
 
-BE.SettingsManager = function (sectionName, settings) {
-    BE.log.debug("Initializing Settings Manager...");
-    BE.log.debug("sectionName = " + sectionName);
-    BE.log.debug("settings = " + settings.toString());
+BE.util.SettingsManager = function (sectionName, settings) {
 
     var that = this,
+        log = BE.log,
         errors = {
             NO_SETTINGS: "There are no settings associated with " +
                 "this Settings Manager",
             SETTING_DOES_NOT_EXIST: "Setting does not exist!" 
-        };
+        },
 
-    version = "0.1.0 dev",
+        version = "0.1.0 dev";
+
+    log.debug("Initializing Settings Manager...");
+    log.debug("sectionName = " + sectionName);
+    log.debug("settings = " + settings.toString());
+
     /**
      * The name for After Effects to use as this group of settings' section
      * name.
@@ -53,7 +57,7 @@ BE.SettingsManager = function (sectionName, settings) {
      */
     this.sectionName = sectionName;
 
-    BE.log.debug("this.sectionName = " + this.sectionName);
+    log.debug("this.sectionName = " + this.sectionName);
 
     /**
      * The settings Object that contains the settings to be managed by this
@@ -63,7 +67,7 @@ BE.SettingsManager = function (sectionName, settings) {
      */
     this.settings = (settings) ? settings : {};
 
-    BE.log.debug("this.settings = " + this.settings);
+    log.debug("this.settings = " + this.settings);
 
     /**
      * Checks to see if a given setting exists within this SettingsManager.
@@ -199,6 +203,6 @@ BE.SettingsManager = function (sectionName, settings) {
         return that;
     };
 
-    BE.log.debug("Returning ScriptManager Version: " + this.version);
+    log.debug("Returning SettingsManager Version: " + this.version);
     return this;
 };

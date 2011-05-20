@@ -1,12 +1,16 @@
 /**
 * @fileoverview The Before Effects prototype module adds methods to built-in
-* JavaScript and ExtendScript objects if they don't exist. Additional prototypes that will be included in a later
-* release are listed under the todo section.
+* JavaScript Objects if they are officially a part of ECMAScript and only if
+* they don't already exist. For more information about the 5th edition of
+* ECMAScript (ECMA-262), visit the specification on the web:
+*
+* http://www.ecma-international.org/publications/standards/Ecma-262.htm
+*
 * @author Collin D. Brooks <collin.brooks@gmail.com>
 * @version 0.1.0 dev
 * TODO:
-* Add the following prototypes to the Array Object based upon the standards within ECMA-262 5th edition:
-* Array.prototype.isArray (
+* Add the following prototypes to the Array Object based upon the standards
+* within ECMA-262 5th edition: Array.prototype.isArray (
 * Array.prototype.indexOf (15.4.4.14)
 * Array.prototype.lastIndexOf (15.4.4.15)
 * Array.prototype.every (15.4.4.16)
@@ -16,7 +20,8 @@
 * Array.prototype.reduce (15.4.4.21)
 * Array.prototype.reduceRight (15.4.4.22)
 *
-* Add the following prototypes to the String Object based upon the standards within ECMA-262 5th edition:
+* Add the following prototypes to the String Object based upon the standards
+* within ECMA-262 5th edition:
 * 
 */
 
@@ -24,19 +29,52 @@
 BE = BE || {};
 
 /*****************************************************************************\
+* >>> Function Prototypes
+\*****************************************************************************/
+
+/*****************************************************************************\
+* >>> Function Prototypes
+\*****************************************************************************/
+
+/*****************************************************************************\
 * >>> Array Prototypes
 \*****************************************************************************/
 
-if (!Array.hasOwnProperty("inArray")) {
-    BE.log.debug("Defining Array.inArray()");
+Array.method("isArray",
     /**
-     * Determines whether or not a given value is within a given array
+     * Determines whether or not an object is an array.
+     * @memberOf Array
+     * @name isArray
+     * @param {*} arg The object to test for arrayness.
+     * @returns {Bool} True if the object is an array. False if it isn't.
+     */
+    function (arg) {
+        if (arg && arg instanceof Array ||
+            (typeof arg === 'object' &&
+            typeof arg.length === 'number' &&
+            !(my_value.propertyIsEnumerable('length')))) {
+
+            return true;
+
+        } else {
+            return false;
+        }
+    }
+);
+
+
+
+Array.method("inArray", 
+    /**
+     * Determines whether or not a given value is within a given array.
+     * @name inArray
+     * @memberOf Array
      * @param {Any} needle The needle to search for
      * @param {Array} haystack The array (haystack) to search for the needle in.
-     * @return {Bool} True if the needle is found, false if it isn't
+     * @returns {Array} True if the needle is found, false if it isn't
      * TODO: Verify the haystack is truly an Array Object!
      */
-    Array.prototype.inArray = function (needle, haystack) {
+    function (needle, haystack) {
         var i;
         for (i in haystack)
         {
@@ -46,12 +84,13 @@ if (!Array.hasOwnProperty("inArray")) {
             }
         }
         return false;
-    };
-}
+    }
+);
 
 if (!Array.hasOwnProperty("filter")) {
     /**
      * Filters an array based upon a filter function.
+     * @memberOf Array
      * @param {Array} a The array to filter
      * @param {Function} f The function to use when filtering the array. If the
      * function returns true, the item in the array is included in the final
@@ -81,6 +120,7 @@ if (!Array.hasOwnProperty("filter")) {
 if (!String.hasOwnProperty("trim")) {
 	/**
 	 * Removes white space at the beginning & end of a string
+     * @memberOf String
 	 * @returns {String} A string without whitespace at the end or beginning
      * TODO:
      * Verify conformity with ECMA-262 5th edition (15.5.4.20)

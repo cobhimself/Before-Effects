@@ -5,8 +5,9 @@
 * @version 0.1.0 dev
 */
 
-//See if BE is already defined
-BE = BE || {};
+BE.provide('BE.ui');
+
+BE.require('BE.log');
 
 /*****************************************************************************\
 * >>> UI Helper
@@ -52,7 +53,9 @@ BE.ui.resError = function (err, res)
 	/**
 	 *@type Regexp
 	 */
-	var rx,
+	var log = BE.log,
+        alertError = BE.alertError,
+        rx,
 		search,
 		errorLine,
 		errorCharOffset,
@@ -68,8 +71,8 @@ BE.ui.resError = function (err, res)
 
 	//If this error is actually a resource error, handle it like one.
 	if (rx.test(err.description)) {
-		BE.log.debug("Resource Error occured...");
-        BE.log.debug("Original error: " + err.description);
+		log.debug("Resource Error occured...");
+        log.debug("Original error: " + err.description);
 		search = rx.exec(err.description);
 		errorLine = parseInt(search[1], 10);
 		errorCharOffset = parseInt(search[2], 10);
@@ -85,22 +88,22 @@ BE.ui.resError = function (err, res)
 		linesAfter = surroundingLinesPadding;
 
 
-		BE.log.debug("Error Line # = " + errorLine);
-		BE.log.debug("Character Offset = " + errorCharOffset);
-		BE.log.debug("Lines = " + lines.length);
-		BE.log.debug("The Line Text = " + theLine);
+		log.debug("Error Line # = " + errorLine);
+		log.debug("Character Offset = " + errorCharOffset);
+		log.debug("Lines = " + lines.length);
+		log.debug("The Line Text = " + theLine);
 
 		//If the error line is in lines 0 to surroundingLinesPadding,
 		//set linesbefore to maximum allowed
 		if (errorLine <= surroundingLinesPadding) {
 			linesBefore = errorLine;
 
-			BE.log.debug("Lines Before = " + linesBefore);
+			log.debug("Lines Before = " + linesBefore);
 		}
 
 		if (errorLine + surroundingLinesPadding > lines.length) {
 			linesAfter = lines.length - errorLine;
-			BE.log.debug("Lines After Changed To: " + linesAfter);
+			log.debug("Lines After Changed To: " + linesAfter);
 		}
 
 		errText = "Original Error: \n " + err.description + "\n" +
@@ -113,7 +116,7 @@ BE.ui.resError = function (err, res)
 		}
 
 		errText += errorLine + theLine + "\n";
-		BE.log.debug("Lines After = " + linesAfter);
+		log.debug("Lines After = " + linesAfter);
 
 		//Print the after lines
 		for (l = errorLine + 1; l < errorLine + linesAfter; l += 1)
@@ -121,14 +124,14 @@ BE.ui.resError = function (err, res)
 			errText += l + lines[l] + "\n";
 		}
 
-		BE.log.debug("Error = " + errText);
+		log.debug("Error = " + errText);
 
-		BE.alertError(errText);
+		alertError(errText);
 	} else {
-		BE.log.debug("Misc Resource Error occured...");
+		log.debug("Misc Resource Error occured...");
 		//This error is not an error caused by malformed resource specs.
 		//Alert the error as a normal error and include the resource string.
-		BE.alertError(err.description + "\n Resource String: \n\n" + res);
+		alertError(err.description + "\n Resource String: \n\n" + res);
 	}
 	throw(new Error("Fatal UI Resource String Error. Halting execution."));
 };
@@ -173,8 +176,9 @@ BE.ui.generateInputField = function (d, t, extraRes)
 	 */
 	var getDefined = function (a, b) {
 		return (a === undefined) ? b : a;
-	},
-
+        },
+        alertError = BE.alertError,
+        ui = BE.ui,
 		e = false,
 		tempD,
 		r;
@@ -182,21 +186,21 @@ BE.ui.generateInputField = function (d, t, extraRes)
 	//Handle some errors
 	if (d === undefined)
 	{
-		BE.alertError(
-				new Error(BE.ui.error.NO_DATA_FOR_INPUT_GENERATOR,
+		alertError(
+				new Error(ui.error.NO_DATA_FOR_INPUT_GENERATOR,
 					$.fileName)
 				);
 		e = true;
 	} else if (d.groupName === undefined) {
-		BE.alertError(new Error(BE.ui.error.NO_GROUP_NAME,
+		alertError(new Error(ui.error.NO_GROUP_NAME,
 					$.fileName));
 		e = true;
 	} else if (d.labelName === undefined) {
-		BE.alertError(new Error(BE.ui.error.NO_LABEL_NAME,
+		alertError(new Error(ui.error.NO_LABEL_NAME,
 					$.fileName));
 		e = true;
 	} else if (d.inputName === undefined) {
-		BE.alertError(new Error(BE.ui.error.NO_INPUT_NAME,
+		alertError(new Error(ui.error.NO_INPUT_NAME,
 					$.fileName));
 		e = true;
 	}
@@ -211,13 +215,13 @@ BE.ui.generateInputField = function (d, t, extraRes)
 		//Create a template object that should be used if a value
 		//is undefined
 		tempD = {
-groupOrientation: "row",
-				  groupMargins: 0,
-				  groupAlignment: "['fill','fill']",
-				  inputText: "",
-				  inputMinSize: "[]",
-				  inputAlignment: "['fill', 'middle']",
-				  inputJustify: "right"
+            groupOrientation: "row",
+            groupMargins: 0,
+			groupAlignment: "['fill','fill']",
+			inputText: "",
+			inputMinSize: "[]",
+			inputAlignment: "['fill', 'middle']",
+			inputJustify: "right"
 		};
 
 		d.groupOrientation	= getDefined(d.groupOrientation,
@@ -284,183 +288,187 @@ groupOrientation: "row",
  */
 BE.ui.viewsConstructor = function (w, windowProps) {
 
-	var views = [],
-		viewReferences = {},
-		built = false,
+    var alertErroro = BE.alertError,
+        ui = BE.ui,
+        views = [],
+        viewReferences = {},
+        built = false,
 
-		/**
-		 *Formats a resource string
-		 *@param {String} r The resource string to format
-		 *@returns {String} The formatted resource string.
-		 */
-		formatRes = function (r) {
-			//Replace { with {\n
-			r = r.replace(/{/g, "{\n");
-				r = r.replace(/},/g, "},\n");
-				return r;
-		},
+    /**
+     * Formats a resource string
+     * @memberOf BE.ui.viewsConstructor
+     * @param {String} r The resource string to format
+     * @returns {String} The formatted resource string.
+     */
+    formatRes = function (r) {
+        //Replace { with {\n
+        r = r.replace(/{/g, "{\n");
+            r = r.replace(/},/g, "},\n");
+            return r;
+    },
 
-		/**
-		 * Returns the final resource string of this ViewConstructor.
-		 * @returns {String} The resource string of the window constructed by
-		 * this ViewConstructor wrapped within group{} and with the window
-		 * properties set upon creation of this ViewConstructor.
-		 */
-		finalResource = function () {
-			var i,
-			viewResources = "";
+    /**
+     * Returns the final resource string of this ViewConstructor.
+     * @memberOf BE.ui.viewsConstructor
+     * @returns {String} The resource string of the window constructed by
+     * this ViewConstructor wrapped within group{} and with the window
+     * properties set upon creation of this ViewConstructor.
+     */
+    finalResource = function () {
+        var i,
+        viewResources = "";
 
-			for (i = 0; i < views.length; i += 1) {
-				viewResources += views[i].res;
+        for (i = 0; i < views.length; i += 1) {
+            viewResources += views[i].res;
 
-				if (i !== views.length - 1) {
-					viewResources += ",\n";
-				}
-			}
+            if (i !== views.length - 1) {
+                viewResources += ",\n";
+            }
+        }
 
-			return "group {\n" +
-				windowProps + ",\n" +
-				viewResources + "\n" +
-				"}";
-		};
+        return "group {\n" +
+            windowProps + ",\n" +
+            viewResources + "\n" +
+            "}";
+    };
 
-		return {
-			/**
-			 * Add a view to this ViewConstructor. This view will have its
-			 * visibility determined by the 'showView' method and will be
-			 * displayed as a stack within the main window.
-			 * @param {String} n The name of the view. This name will be used
-			 * when accessing this view through the array returned by the
-			 * 'getViews' method.
-			 * @param {String} res The resource string that defines the content
-			 * of this view. This resource string will be encapsulated
-			 * by Group{} and will have the name given as the 'n' argument.
-			 *
-			 * Note: Do not put a trailing comma after the resource string for
-			 * this view. It is automatically added.
-			 *
-			 * @returns Nothing.
-			 * @extends BE#ui#viewConstructor
-			 * @see getViews
-			 * @see showView
-			 * 
-			 */
-			"addView": function (n, res) {
-				views[views.length] = {
-					"name": n,
-					"res": n + ": Group {\n" +
-						formatRes(res) +
-						"}"
-				};
-			},
-				/**
-				 * Creates the resource string made up of all the different views
-				 * added by the 'addView' method and returns the Window|Palette
-				 * Object reference.
-				 * @returns {Window|Palette} The final Window|Palette created by
-				 * this ViewConstructor. This should be used to populate the
-				 * variable you wish to use as your Window|Palette base group.
-				 * @extends BE.ui.viewConstructor
-				 * @see addView
-				 */
-				"build": function () {
-					var i,
-					finalRes = finalResource();
+    return {
+        /**
+         * Add a view to this ViewConstructor. This view will have its
+         * visibility determined by the 'showView' method and will be
+         * displayed as a stack within the main window.
+         * @param {String} n The name of the view. This name will be used
+         * when accessing this view through the array returned by the
+         * 'getViews' method.
+         * @param {String} res The resource string that defines the content
+         * of this view. This resource string will be encapsulated
+         * by Group{} and will have the name given as the 'n' argument.
+         *
+         * Note: Do not put a trailing comma after the resource string for
+         * this view. It is automatically added.
+         *
+         * @returns Nothing.
+         * @extends BE#ui#viewConstructor
+         * @see getViews
+         * @see showView
+         * 
+         */
+        "addView": function (n, res) {
+            views[views.length] = {
+                "name": n,
+                "res": n + ": Group {\n" +
+                    formatRes(res) +
+                    "}"
+            };
+        },
+        /**
+         * Creates the resource string made up of all the different views
+         * added by the 'addView' method and returns the Window|Palette
+         * Object reference.
+         * @returns {Window|Palette} The final Window|Palette created by
+         * this ViewConstructor. This should be used to populate the
+         * variable you wish to use as your Window|Palette base group.
+         * @extends BE.ui.viewConstructor
+         * @see addView
+         */
+        "build": function () {
+            var i,
+            finalRes = finalResource();
 
-					//Add the final resource string to the grp field of the window
-					try {
+            //Add the final resource string to the grp field of the window
+            try {
 
-						w.grp = w.add(finalRes);
-					} catch (e) {
-						BE.alertError(finalRes);
-						BE.ui.resError(e, finalRes);
-						//                    throw(new Error("ViewConstructor ResourceError: Unable to "+
-						//                        "build ViewConstructor because of error: " +
-						//                        e.toString()));
-					}
+                w.grp = w.add(finalRes);
+            } catch (e) {
+                alertError(finalRes);
+                ui.resError(e, finalRes);
+                //                    throw(new Error("ViewConstructor ResourceError: Unable to "+
+                //                        "build ViewConstructor because of error: " +
+                //                        e.toString()));
+            }
 
 
-					//Populate view references
-					for (i = 0; i < views.length; i += 1) {
-						viewReferences[views[i].name] = w.grp[views[i].name];
-					}
-					built = true;
-					return w;
-				},
+            //Populate view references
+            for (i = 0; i < views.length; i += 1) {
+                viewReferences[views[i].name] = w.grp[views[i].name];
+            }
+            built = true;
+            return w;
+        },
 
-				/**
-				 * Shows the given view and hides all of the others.
-				 * @param {String} v The name of the view to show.
-				 * @returns Nothing.
-				 * @extends BE.ui.viewConstructor
-				 */
-				"showView": function (v) {
-					if (built === true)
-					{
-						var i, currView;
+        /**
+         * Shows the given view and hides all of the others.
+         * @param {String} v The name of the view to show.
+         * @returns Nothing.
+         * @extends BE.ui.viewConstructor
+         */
+        "showView": function (v) {
+            if (built === true)
+            {
+                var i, currView;
 
-						for (i = 0; i < views.length; i += 1) {
-							currView = w.grp[views[i].name];
-							if (views[i].name === v) {
-								currView.show();
-							} else {
-								currView.hide();
-							}
-						}
-					}
-				},
-				/**
-				 * Returns an Object of references to the base group of the given
-				 * views. Useful when you want to access each view's Group Object.
-				 * @returns {Object of Groups} An Object filled with references of
-				 * the different view's Group Objects.
-				 *
-				 * Example:
-				 * <code>
-				 * var w = new Window("palette",
-				 * BE.PRad.scriptName + " " + BE.PRad.scriptVersion,
-				 * undefined,
-				 * {
-				 *  "resizeable": false
-				 *  });
-				 * var viewConstructor = BE.UI_Helper.viewConstructor(w,
-				 *  "orientation: 'column'"
-				 * );
-				 * viewConstructor.addView("viewOne",
-				 * "alignment:['fill','fill']," +
-				 * "orientation: 'column'," +
-				 * "nameGroup: Group {" +
-				 *  "orientation: 'row', " +
-				 *  "margins:[10,10,10,0], " +
-				 *  "nameLabel: StaticText {" +
-				 *  "text: 'Your Name:'" +
-				 *  "}");
-				 * var v = viewConstructor.getViews();
-				 * var viewOneReference = v.One;
-				 * alert(viewOneReference.nameGroup.nameLabel.text); //"Your Name:"
-				 * </code>
-				 * @extends BE.ui.viewConstructor
-				 */
-				"getViews": function () {
-					return viewReferences;
-				},
+                for (i = 0; i < views.length; i += 1) {
+                    currView = w.grp[views[i].name];
+                    if (views[i].name === v) {
+                        currView.show();
+                    } else {
+                        currView.hide();
+                    }
+                }
+            }
+        },
+        /**
+         * Returns an Object of references to the base group of the given
+         * views. Useful when you want to access each view's Group Object.
+         * @returns {Object of Groups} An Object filled with references of
+         * the different view's Group Objects.
+         *
+         * Example:
+         * <code>
+         * var w = new Window("palette",
+         * BE.PRad.scriptName + " " + BE.PRad.scriptVersion,
+         * undefined,
+         * {
+         *  "resizeable": false
+         *  });
+         * var viewConstructor = BE.UI_Helper.viewConstructor(w,
+         *  "orientation: 'column'"
+         * );
+         * viewConstructor.addView("viewOne",
+         * "alignment:['fill','fill']," +
+         * "orientation: 'column'," +
+         * "nameGroup: Group {" +
+         *  "orientation: 'row', " +
+         *  "margins:[10,10,10,0], " +
+         *  "nameLabel: StaticText {" +
+         *  "text: 'Your Name:'" +
+         *  "}");
+         * var v = viewConstructor.getViews();
+         * var viewOneReference = v.One;
+         * alert(viewOneReference.nameGroup.nameLabel.text); //"Your Name:"
+         * </code>
+         * @extends BE.ui.viewConstructor
+         */
+        "getViews": function () {
+            return viewReferences;
+        },
 
-				/**
-				 * Returns the final resource string of the Window|Palette created
-				 * by this ViewConstructor.
-				 * @returns {String} The final resource string of the Window|Palette
-				 * created by this ViewConstructor.
-				 * @extends BE.ui.viewConstructor
-				 */
-				"getRes": function () {
-					return finalResource();
-				}
-		};
-		};
+        /**
+         * Returns the final resource string of the Window|Palette created
+         * by this ViewConstructor.
+         * @returns {String} The final resource string of the Window|Palette
+         * created by this ViewConstructor.
+         * @extends BE.ui.viewConstructor
+         */
+        "getRes": function () {
+            return finalResource();
+        }
+    };
+};
 
-		BE.ui.view = function (parent, res) {
-			var r = "group { " + res + "},";
-			//Add the res to the parent
-			return parent.add(r).grp;
-		};
+BE.ui.view = function (parent, res) {
+    var r = "group { " + res + "},";
+    //Add the res to the parent
+    return parent.add(r).grp;
+};
 

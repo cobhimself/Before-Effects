@@ -5,8 +5,9 @@
 * @version 0.1.0 dev
 */
 
-//See if BE is already defined
-BE = BE || {};
+BE.provide('BE.layer');
+
+BE.require('BE.log');
 
 /**
  *Contains layer helper methods that provide more functionality than the
@@ -81,9 +82,11 @@ BE.layer.findMarkerIndex = function (l, markerText)
  */
 BE.layer.getMarkerTime = function (l, markerIndex)
 {
-	BE.log.debug("Layer: " + l.name + "; Marker Index: " + markerIndex);
-	BE.log.debug("Actual time: " + l.property("Marker").keyTime(markerIndex));
-	BE.log.debug("getMarkerTime returns " + timeToCurrentFormat(l.property("Marker").keyTime(markerIndex),
+    var log = BE.log;
+
+	log.debug("Layer: " + l.name + "; Marker Index: " + markerIndex);
+	log.debug("Actual time: " + l.property("Marker").keyTime(markerIndex));
+	log.debug("getMarkerTime returns " + timeToCurrentFormat(l.property("Marker").keyTime(markerIndex),
 				l.containingComp.frameRate,
 				true
 				));

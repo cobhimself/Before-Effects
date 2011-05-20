@@ -5,8 +5,7 @@
 * @version 0.1.0 dev
 */
 
-//See if BE is already defined
-BE = BE || {};
+BE.provide('BE.time');
 
 /*****************************************************************************\
 * >>> TIME Helper
