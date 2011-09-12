@@ -30,6 +30,7 @@
 var BE = (function () {
     /*************************************************************************\
      * >>> Private Variables
+     * All private variables end with a _ except for 'that'
     \*************************************************************************/
 	
     /**
@@ -82,7 +83,7 @@ var BE = (function () {
          */
         visited: [],
         /**
-         * An array of includes that have already been included. This helps
+         * An array of includes that have already been required. This helps
          * make sure a module does not define a resource more than once.
          * @type {String[]}
          */
@@ -129,7 +130,8 @@ var BE = (function () {
     \*************************************************************************/
 
     /**
-     * The base folder, relative to this file with no trailing slash.
+     * The base folder of the beforeeffects.jsx file relative to this file with
+     * no trailing slash.
      * @type {String}
      */
     this.BASE_PATH = new Folder(new File($.fileName).parent.fsName).fsName;
@@ -143,9 +145,10 @@ var BE = (function () {
      * Imports the module defined by the given name path if it has not already
      * been defined; If the module cannot be found, an exception is raised.
      * @param {String} name The path to the module using object path notation
-     * to drill down to the desired script. Uses the {@link BE.BASE_PATH} as
-     * the root for the search.
-     * @example "BE.proj" imports proj/proj.jsxinc
+     * to drill down to the desired module's script. Uses the
+     * {@link BE.BASE_PATH} as the root for the search.
+     * @example
+     * BE.require("BE.proj"); //runs proj/proj.jsxinc
      */
     this.require = function (name) {
 
@@ -155,6 +158,7 @@ var BE = (function () {
 
         if (dependencies_.visited[name]) {
             log.debug('Already visited!');
+            //No need to run the module because it has already been visited
             return;
         }
 
@@ -166,17 +170,17 @@ var BE = (function () {
         if (!dependencies_.included[name]) {
             //Evaluate the script
             if (that.runScript(that.nameToPath(name))) {
-                //Mark the name as being included.
+                //Mark the module as being included.
                 dependencies_.included[name] = true;
                 log.debug('Require of ' + name + ' successfull!');
+
+                //Our work is done here.
                 return;
             } else {
                 //Mark the file as not visited so the user can check the error
                 //and retry.
                 dependencies_.visited[name] = false;
-                log.debug('Error in requiring ' + name);
-
-                throw ('Require Error. Cannot continue');
+                log.error('Error in requiring ' + name);
             }
             
         }
@@ -189,24 +193,30 @@ var BE = (function () {
      * @param {String} name The name of the object to define.
      * @returns {Object} The last object in the path.
      * @example
-     * BE.provide("BE.my.long.object.path");
-     * produces:
-     * BE = { my: { long: { object: { path: {}}}}};
+     * <code>BE.provide("BE.my.long.object.path");</code>
+     * same as:
+     * <code>BE = { my: { long: { object: { path: {}}}}};</code>
      */
     this.provide = function (name) {
         return exportPath_(name);
     };
 
     /**
-     * Evaluates the script that resides at the given path. Note: This method
-     * does not check to see if the file has already been evaluated.
+     * Evaluates the script that resides at the given file path relative to the
+     * {@link BE.BASE_PATH}.
+     * <p>
+     * NOTE: This method does not check to see if the file has already been
+     * evaluated.
      * @param {String} path The file path for the script to be run.
      * @returns {Boolean} True if the file was succesfully evaluated, false if
      * it wasn't.
+     * @example
+     * BE.runScript("comp/comp.jsxinc"); //runs BE.BASE_PATH/comp/comp.jsx
+     * }
      */
     this.runScript = function (path) {
         try {
-            $.evalFile(new File(that.BASE_PATH + path));
+            $.evalFile(new File(that.BASE_PATH + "/" + path));
 
             return true;
         } catch (e) {
@@ -219,16 +229,17 @@ var BE = (function () {
 
     /**
      * Takes a name in object notation and returns the file path to the script
-     * that defines the object relative to the {@link BE.BASE_PATH}.
+     * that defines the object relative to the {@link BE.BASE_PATH} without the
+     * / prefix.
      * @param {String} name The name of the object to return the file path for.
      * @returns {String} The relative file path where the object with the given
      * name is defined.
      * @example
-     * BE.nameToPath('BE.comp.getLayerNames'); //returns /comp/comp.jsxinc
+     * BE.nameToPath('BE.comp'); //returns comp/comp.jsxinc
      */
     this.nameToPath = function (name) {
         var parts = name.split('.'),
-            i, max, path = '/',
+            i, max, path = '',
             log = that.log;
 
         log.debug('nameToPath(' + name + ')');
@@ -254,12 +265,24 @@ var BE = (function () {
 
 
     /**
-     * Returns true if the specified value is not |undefined|.  WARNING: Do not
-     * use this to test if an object has a property. Use the in operator
-     * instead.  Additionally, this function assumes that the global undefined
-     * variable has not been redefined.
+     * Returns true if the specified value is not |undefined|.
+     * <p>
+     * WARNING: Do not use this to test if an object has a property. Use the
+     * <code>in</code> operator instead.  Additionally, this function assumes
+     * that the global <code>undefined</code> variable has not been redefined.
+     * </p>
      * @param {*} val Variable to test.
      * @returns {boolean} Whether variable is defined.
+     * @example
+     * var x;
+     * BE.isDef(x); //false
+     * x = 1;
+     * BE.isDef(x); //true
+     *
+     * //To check if a object has a property use this instead:
+     * var x.blah = 1;
+     * "blah" in x; //true
+     * "bam" in x; //false
      */
     this.isDef = function (val) {
       return val !== undefined;
@@ -267,9 +290,23 @@ var BE = (function () {
 
 
     /**
-     * Returns true if the specified value is |null|
+     * Returns true if the specified value is truly |null|.
+     * <p>
+     * NOTE: There are a couple
+     * of things to look out for when working with null values:
+     * <ul>
+     * <li><code>typeof null</code> returns '<code>object</code>' instead of
+     * '<code>null</code>'.</li>
+     * <li><code>null == undefined</coe> returns <code>true</code></li>
+     * </ul>
+     * </p>
+     *
      * @param {*} val Variable to test.
      * @returns {boolean} Whether variable is null.
+     * @example
+     * var x;
+     * BE.isNull(x); //true
+     * !BE.isNull(x); //false
      */
     this.isNull = function (val) {
       return val === null;
@@ -277,9 +314,19 @@ var BE = (function () {
 
 
     /**
-     * Returns true if the specified value is defined and not null
+     * Returns true if the specified value is defined and not null.
+     *
+     * <p>
+     * NOTE: <code>undefined == null</code> is <code>true</code> but
+     * <code>undefined === null</code> is <code>false</code>.
+     * </p>
      * @param {*} val Variable to test.
      * @returns {boolean} Whether variable is defined and not null.
+     * @example
+     * var x = null;
+     * BE.isDefAndNotNull(x); //false
+     * x = "I like cake";
+     * BE.isDefAndNotNull(x); //true
      */
     this.isDefAndNotNull = function (val) {
       // Note that undefined == null.
@@ -291,6 +338,9 @@ var BE = (function () {
      * Returns true if the specified value is a string
      * @param {*} val Variable to test.
      * @returns {boolean} Whether variable is a string.
+     * @example
+     * var x = "howdy";
+     * BE.isString(x); //true
      */
     this.isString = function (val) {
       return typeof val === 'string';
@@ -301,6 +351,9 @@ var BE = (function () {
      * Returns true if the specified value is a boolean
      * @param {*} val Variable to test.
      * @returns {boolean} Whether variable is boolean.
+     * @example
+     * var x = false;
+     * BE.isBoolean(x); //true
      */
     this.isBoolean = function (val) {
       return typeof val === 'boolean';
@@ -326,9 +379,9 @@ var BE = (function () {
         if (!(val instanceof Object) &&
             (Object.prototype.toString.call(
             /** @type {Object} */ (val)) === '[object Function]' ||
-            typeof val.call !== 'undefined' &&
+            (typeof val.call !== 'undefined' &&
             typeof val.propertyIsEnumerable !== 'undefined' &&
-            !val.propertyIsEnumerable('call'))) {
+            !val.propertyIsEnumerable('call')))) {
 
             return true;
 
@@ -462,11 +515,6 @@ var BE = (function () {
     /**
      * Inserts a horizontal rule in the log to visually separate the info to be
      * written to the log.
-     * @example
-     *  BE.log.separate(1, '+', 5);
-     *  //Output:
-     *  
-     *  +++++
      *  
      * @param {Array|Int} [padding = 0] <p>One of two types of values can be
      * sent as the parameter for this method. If you pass an Integer or a
@@ -483,6 +531,11 @@ var BE = (function () {
      * @param {String} [s="-"] The character to use as the separator.
      * @param {Number} [n = 15] How many characters to place within the
      * horizontal separator line.
+     * @example
+     *  BE.log.separate(1, '+', 5);
+     *  //Output:
+     *  
+     *  +++++
      */
     this.log.separate = function (padding, s, n) {
 
@@ -640,5 +693,6 @@ var BE = (function () {
         NO_ACTIVE_COMP : "The active composition within the " +
             "project could not be found!"
     };
+
     return this;
 }());

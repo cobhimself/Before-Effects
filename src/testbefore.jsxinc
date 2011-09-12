@@ -1,0 +1,829 @@
+/**
+ * @fileoverview A unit testing suite for Extenscript.
+ * @author <a href="mailto:collin.brooks@gmail.com">Collin Brooks</a>
+ * @version 0.1.0 dev
+ */
+
+/*jslint white: true, onevar: true, undef: true, newcap: true, regexp: true,
+ plusplus: true, bitwise: true, maxerr: 50, maxlen: 79, indent: 4 */
+
+/**
+ * The main testbefore object.
+ * @namespace
+ * @version 0.1.0 dev
+ */
+var TB = (function () {
+    var data = {},
+        tests = [],
+        modules = [],
+        Module,
+        Test,
+        formatter,
+        equiv,
+        totalPassed = 0,
+        totalFailed = 0,
+        totalModules = 0,
+        totalAssertions = 0,
+        totalTests = 0;
+
+    data.currentModule = null;
+    data.currentTest = null;
+    data.previousModule = null;
+
+    /**
+     * Returns an object with a result and message that describes information
+     * about the test.
+     * @param {Bool} result The boolean result for the given test.
+     * @param {*} actual The actual value of the test.
+     * @param {*} expected The expected value of the test.
+     * @param {String} message The message to display next to this test result.
+     * @returns {Object} An object with result and message keys. The result is
+     * a boolean value and the message is a string.
+     * @inner
+     */
+    function assertion(result, actual, expected, message) {
+        var outcome;
+
+        return {
+            result: result,
+            actual: actual.toString(),
+            expected: expected.toString(),
+            message: message
+        };
+    }
+
+    // Test for equality any JavaScript type.
+    // Discussions and reference: http://philrathe.com/articles/equiv
+    // Test suites: http://philrathe.com/tests/equiv
+    // Author: Philippe Rathé <prathe@gmail.com>
+    // Copied from qunit: http://docs.jquery.com/QUnit
+    equiv = (function () {
+
+        var innerEquiv, // the real equiv function
+            callers = [], // stack to decide between skip/abort functions
+            parents = [], // stack to avoiding loops from circular referencing
+            callbacks = null;
+
+        // Call the o related callback with the given arguments.
+        function bindCallbacks(o, callbacks, args) {
+            var prop = TB.objectType(o);
+            if (prop) {
+                if (TB.objectType(callbacks[prop]) === "function") {
+                    return callbacks[prop].apply(callbacks, args);
+                } else {
+                    return callbacks[prop]; // or undefined
+                }
+            }
+        }
+        
+        callbacks = (function () {
+
+            // for string, boolean, number and null
+            function useStrictEquality(b, a) {
+                if (b instanceof a.constructor || a instanceof b.constructor) {
+                    // to catch short annotaion VS 'new' annotation
+                    // of a declaration
+                    // e.g. var i = 1;
+                    //      var j = new Number(1);
+                    return a == b;
+                } else {
+                    return a === b;
+                }
+            }
+
+            return {
+                "string": useStrictEquality,
+                "boolean": useStrictEquality,
+                "number": useStrictEquality,
+                "null": useStrictEquality,
+                "undefined": useStrictEquality,
+
+                "nan": function (b) {
+                    return isNaN(b);
+                },
+
+                "date": function (b, a) {
+                    return TB.objectType(b) === "date" &&
+                        a.valueOf() === b.valueOf();
+                },
+
+                "regexp": function (b, a) {
+                    return TB.objectType(b) === "regexp" &&
+                        a.source === b.source && // the regex itself
+                        a.global === b.global && // and its modifers (gmi) ...
+                        a.ignoreCase === b.ignoreCase &&
+                        a.multiline === b.multiline;
+                },
+
+                // - skip when the property is a method of an instance (OOP)
+                // - abort otherwise,
+                //   initial === would have catch identical references anyway
+                "function": function () {
+                    var caller = callers[callers.length - 1];
+                    return caller !== Object &&
+                        typeof caller !== "undefined";
+                },
+
+                "array": function (b, a) {
+                    var i, j, loop, len;
+
+                    // b could be an object literal here
+                    if (TB.objectType(b) !== "array") {
+                        return false;
+                    }   
+                    
+                    len = a.length;
+                    if (len !== b.length) { // safe and faster
+                        return false;
+                    }
+                    
+                    //track reference to avoid circular references
+                    parents.push(a);
+                    for (i = 0; i < len; i += 1) {
+                        loop = false;
+                        for (j = 0; j < parents.length; j += 1) {
+                            if (parents[j] === a[i]) {
+                                loop = true;//dont rewalk array
+                            }
+                        }
+                        if (!loop && !innerEquiv(a[i], b[i])) {
+                            parents.pop();
+                            return false;
+                        }
+                    }
+                    parents.pop();
+                    return true;
+                },
+
+                "object": function (b, a) {
+                    var i, j, loop,
+                        eq = true, // unless we can proove it
+                        aProperties = [], // collection of strings 
+                        bProperties = []; // collection of strings
+
+                    // comparing constructors is more strict than using
+                    // instanceof
+                    if (a.constructor !== b.constructor) {
+                        return false;
+                    }
+
+                    // stack constructor before traversing properties
+                    callers.push(a.constructor);
+                    //track reference to avoid circular references
+                    parents.push(a);
+                    
+                    for (i in a) {
+                    // be strict: don't ensure hasOwnProperty and go deep
+                        loop = false;
+                        for (j = 0; j < parents.length; j += 1) {
+                            if (parents[j] === a[i]) {
+                                //don't go down the same path twice 
+                                loop = true;
+                            }
+                        }
+                        aProperties.push(i); // collect a's properties
+
+                        if (!loop && !innerEquiv(a[i], b[i])) {
+                            eq = false;
+                            break;
+                        }
+                    }
+
+                    callers.pop(); // unstack, we are done
+                    parents.pop();
+
+                    for (i in b) {
+                        bProperties.push(i); // collect b's properties
+                    }
+
+                    // Ensures identical properties name
+                    return eq && innerEquiv(aProperties.sort(),
+                            bProperties.sort());
+                }
+            };
+        }());
+
+        innerEquiv = function () { // can take multiple arguments
+            var args = Array.prototype.slice.apply(arguments);
+            if (args.length < 2) {
+                return true; // end transition
+            }
+
+            return (function (a, b) {
+                if (a === b) {
+                    return true; // catch the most you can
+                } else if (
+                        a === null ||
+                        b === null ||
+                        typeof a === "undefined" ||
+                        typeof b === "undefined" ||
+                        TB.objectType(a) !== TB.objectType(b)
+                        ) {
+                    return false; // don't lose time with error prone cases
+                } else {
+                    return bindCallbacks(a, callbacks, [b, a]);
+                }
+
+            // apply transition with (1..n) arguments
+            }(args[0], args[1])) &&
+                    arguments.callee.apply(
+                        this,
+                        args.splice(1, args.length - 1)
+                    );
+        };
+
+        return innerEquiv;
+
+    }());
+
+    /**
+     * Returns the type of the given object as a lowercase string.
+     * Borrowed from QUnit: http://docs.jquery.com/QUnit
+     * @param {Object} obj An object to get the type of.
+     * @returns {String} A lowercase type string.
+     */
+	this.objectType = function (obj) {
+		if (typeof obj === "undefined") {
+            return "undefined";
+
+		// consider: typeof null === object
+		}
+		if (obj === null) {
+            return "null";
+		}
+
+		var type = Object.prototype.toString.call(obj)
+			.match(/^\[object\s(.*)\]$/)[1] || '';
+
+		switch (type) {
+            case 'Number':
+                if (isNaN(obj)) {
+                    return "nan";
+                } else {
+                    return "number";
+                }
+            case 'String':
+            case 'Boolean':
+            case 'Array':
+            case 'Date':
+            case 'RegExp':
+            case 'Function':
+                return type.toLowerCase();
+		}
+		if (typeof obj === "object") {
+            return "object";
+		}
+		return undefined;
+	};
+
+    /**
+     * @namespace Default formatter object that outputs information
+     * to the Extendscript console. This can be replaced with a custom
+     * formatter object to extend the output functionality.
+     * @private
+     * @inner
+     */
+    formatter = {
+        /**
+         * Returns a pluralized string.
+         * @memberOf formatter
+         */
+        pluralize: function (val, base, tail) {
+            var s = val + " " + base;
+
+            s += (val > 1 || val < -1) ? tail : "";
+
+            return s;
+        },
+        /**
+         * Outputs a result.
+         * @param {String} type A type string that specifies the type of output
+         * to make.
+         * @param {Object} d A data object with key/value pairs required
+         * for the given type.
+         * @memberOf formatter
+         */
+        output: function (type, d) {
+            var outcome;
+            if (type === "moduleHeader") {
+                $.writeln(d.moduleName + " " +
+                    "(" + this.pluralize(d.numTests, "test", "s") + ")");
+                $.writeln("=================");
+                $.writeln("");
+            } else if (type === "moduleFooter") {
+                $.writeln("=================");
+                $.writeln(d.moduleName + " results: " +
+                    "PASSED: " + d.passed + ", " +
+                    "FAILED: " + d.failed);
+                $.writeln("");
+            } else if (type === "testHeader") {
+                $.writeln(d.testName + " " + "(" +
+                        this.pluralize(
+                            d.numAssertions,
+                            "assertion", "s"
+                        ) + ")"
+                );
+                $.writeln("-----------------");
+                $.writeln("");
+            } else if (type === "testFooter") {
+                $.writeln("");
+                $.writeln("-----------------");
+                $.writeln(d.testName + " results: " +
+                    "PASSED: " + d.passed + ", " +
+                    "FAILED: " + d.failed);
+                $.writeln("");
+            } else if (type === "testResult") {
+                outcome = (d.result === true) ? "PASSED - " : "FAILED - ";
+                $.writeln(" > " + outcome + d.message);
+
+                if(d.expected != undefined) {
+                    $.writeln("\t EXPECTED: " + d.expected);
+                }
+
+                if(d.actual != undefined) {
+                    $.writeln("\t ACTUAL:   " + d.actual);
+                }
+            } else if (type === "summary") {
+                $.writeln("##### SUMMARY #####");
+                $.writeln("Total Modules: " + totalModules);
+                $.writeln("Total Tests: " + totalTests);
+                $.writeln("Total Assertions: " + totalAssertions);
+                $.writeln("Total Passed: " + totalPassed);
+                $.writeln("Total Failed: " + totalFailed);
+            } else {
+                alert("Unsupported result type: " + d.resultType);
+            }
+        }
+    };
+
+    /**
+     * Defines a group of tests.
+     * @class Represents a group of tests.
+     * @param {String} name The name of this test group.
+     * @property {String} name The name of this module.
+     * @property {Array} tests[] An array of Test objects belonging to this
+     * module.
+     * @property {Number} passed The number of tests that have passed.
+     * @property {Number} failed The number of tests that have failed.
+     * @property {Array} results[] An array of result objects.
+     * @private
+     * @inner
+     */
+    Module = function (name) {
+        this.name = name;
+        this.tests = [];
+        this.passed = 0;
+        this.failed = 0;
+        this.results = [];
+
+        return this;
+    };
+
+    Module.prototype = {
+        /**
+         * Runs the Module's set of tests.
+         * @returns {Array} An array of result objects.
+         */
+        run: function () {
+            var i,
+                max,
+                r,
+                currTest,
+                j,
+                numAssertions,
+                testResult;
+
+            max = this.tests.length;
+
+            for (i = 0; i < max; i += 1) {
+                totalTests += 1;
+                currTest = this.tests[i];
+                
+                //Run the test.
+                r = currTest.run();
+
+                //Output the test header.
+                formatter.output("testHeader", {
+                    testName: currTest.title,
+                    numAssertions: currTest.numAssertions
+                });
+
+                //In order to calculate the number of assertions within a test,
+                //the output of the results needed to be delayed. Go through
+                //the results array and output the test results one by one.
+                numAssertions = currTest.numAssertions;
+
+                for (j = 0; j < numAssertions; j += 1) {
+                    testResult = currTest.results[j];
+                    this.processResult(testResult);
+                    formatter.output ("testResult", {
+                        result: testResult.result,
+                        message: testResult.message,
+                        expected: testResult.expected,
+                        actual: testResult.actual
+                    });
+                }
+
+                //Output the test footer
+                formatter.output("testFooter", {
+                    testName: currTest.title,
+                    passed: currTest.passed,
+                    failed: currTest.failed
+                });
+                
+                //Update the pass/fail numbers and store the result
+                //in the module results array.
+                /*this.processResult(r);*/
+            }
+
+            return this.results;
+        },
+
+        /**
+         * Adds a test to this module's array of tests.
+         * @param {Test} t The test to add to this module.
+         * @returns {Test} The test added to this module.
+         */
+        addTest: function (t) {
+            this.tests.push(t);
+            return t;
+        },
+
+        /**
+         * Adds the given result to the Module's list of results as well as
+         * updates the number of passed/failed tests.
+         * @param {Object} r The result object to process.
+         * @returns {Module} This Module; useful for chaining.
+         */
+        processResult: function (r) {
+            this.results.push(r);
+            
+            if (r.result === true) {
+                this.passed += 1;
+            } else {
+                this.failed += 1;
+            }
+        }
+    };
+
+    /**
+     * Defines a test to be run.
+     * @class Defines a test, or a collection of assertions.
+     * @param {String} title The title of this test.
+     * @param {Function} f The function to call when running this test.
+     * @property {String} title The title of this test.
+     * @property {Number} numAssertions The number of assertions within this
+     * test.
+     * @property {Function} callback The callback function that is run for this
+     * test.
+     * @property {Array} results[] An array of results of the assertions within
+     * this test.
+     * @property {Number} passed The number of tests that passed within this
+     * test.
+     * @property {Number} failed The number of tests that failed within this
+     * test.
+     * @private
+     * @inner
+     */
+    Test = function (title, f) {
+        this.title = title;
+        this.numAssertions = 0;
+        this.callback = f;
+        this.results = [];
+        this.passed = 0;
+        this.failed = 0;
+    };
+
+    /**
+     * Runs the test.
+     */
+    Test.prototype = {
+        run: function () {
+            /*this.init();*/
+            data.currentTest = this;
+            this.callback();
+            /*this.clean();*/
+        },
+        /**
+         * Processes a result from a test.
+         */
+        processResult: function (r) {
+            this.numAssertions += 1;
+            totalAssertions += 1;
+
+            this.results.push(r);
+            if (r.result) {
+                this.passed += 1;
+                totalPassed += 1;
+            } else {
+                this.allPassed = false;
+                this.failed += 1;
+                totalFailed += 1;
+            }
+
+        }
+    };
+
+    this.module = function (name) {
+        modules.push(
+            data.currentModule = new Module(name)
+        );
+    };
+
+    this.test = function (name, f) {
+        //Check to see if there is a module that exists for this test to be
+        //added to.
+        if (modules.length === 0) {
+            //No module exists, create a main module.
+            modules.push(data.currentModule = new Module("Main"));
+        }
+        
+        //Add the test to the current module
+        modules[modules.length - 1].addTest(new Test(name, f));
+    };
+
+    this.runTests = function () {
+        var i,
+            maxModules = modules.length,
+            currModule,
+            maxTests;
+
+        //Go through all of the modules and run their tests.
+        for (i = 0; i < maxModules; i += 1) {
+            data.currentModule = currModule = modules[i];
+            totalModules += 1;
+            maxTests = currModule.tests.length;
+            
+            //Output module name
+            formatter.output("moduleHeader", {
+                moduleName: currModule.name,
+                numTests: maxTests
+            });
+
+            currModule.run();
+
+            //Output module footer with results
+            formatter.output("moduleFooter", {
+               moduleName: currModule.name,
+               passed: currModule.passed,
+               failed: currModule.failed
+            });
+        }
+
+        //Output a summary of the test.
+        formatter.output("summary", {
+            totalModules: totalModules,
+            totalTests: totalTests,
+            totalAssertions: totalAssertions,
+            totalPassed: totalPassed,
+            totalFailed: totalFailed
+        });
+    };
+
+    /**
+     * Asserts true.
+     * @example ok( "asdfasdf".length > 5, "There must be at least 5 chars" );
+     */
+    this.ok = function (actual, message) {
+        data.currentTest.processResult({
+            result: actual,
+            message: message
+        });
+    };
+
+	/**
+	 * Checks that the first two arguments are equal.
+	 * Prints out both actual and expected values.
+	 *
+	 * Prefered to ok( actual == expected, message )
+     *
+     * NOTE: This method uses a relaxed comparison (==), for a more strict
+     * comparison, see {@link TB.strictEqual}
+	 *
+     * @example TB.equal(format("Received {0} bytes.", 2), "Received 2
+     * bytes.");
+	 *
+	 * @param {Object} actual The actual value of the assertion.
+	 * @param {Object} expected The expected value of the assertion.
+	 * @param {String} [message] The message to be displayed for this
+     * assertion.
+	 */
+    this.equal = function (actual, expected, message) {
+        data.currentTest.processResult(
+            assertion(
+                actual == expected,
+                actual,
+                expected,
+                message
+            )
+        );
+    };
+
+    /**
+     * Checks that the first two arguments are not equal.
+     * Prints out both actual and expected values.
+     *
+     * Prefered to ok(actual != expected, message)
+     *
+     * NOTE: This method uses a relaxed comparison (==), for a more strict
+     * comparison, see (@link TB.strictNotEqual}
+     *
+     * @example TB.notEqual(format("Received {0} bytes.", 2), "Received 2
+     * bytes.");
+	 *
+	 * @param {Object} actual The actual value of the assertion.
+	 * @param {Object} expected The expected value of the assertion.
+	 * @param {String} [message] The message to be displayed for this
+     * assertion.
+     */
+    this.notEqual = function (actual, expected, message) {
+        data.currentTest.processResult(
+            assertion(
+                actual != expected,
+                actual,
+                expected,
+                message
+            )
+        );
+    };
+
+	/**
+	 * Strictly checks that the first two arguments are equal.
+	 * Prints out both actual and expected values.
+	 *
+	 * Prefered to ok( actual === expected, message )
+     *
+     * NOTE: This method uses a strict comparison (===), for a more relaxed
+     * comparison, see {@link TB.equal}
+	 *
+     * @example TB.strictEqual(format("Received {0} bytes.", 2), "Received 2
+     * bytes.");
+	 *
+	 * @param {Object} actual The actual value of the assertion.
+	 * @param {Object} expected The expected value of the assertion.
+	 * @param {String} [message] The message to be displayed for this
+     * assertion.
+	 */
+    this.strictEqual = function (actual, expected, message) {
+        data.currentTest.processResult(
+            assertion(
+                actual === expected,
+                actual,
+                expected,
+                message
+            )
+        );
+    };
+
+    /**
+     * Strictly checks that the first two arguments are not equal.
+     * Prints out both actual and expected values.
+     *
+     * Prefered to ok(actual !== expected, message)
+     *
+     * NOTE: This method uses a strict comparison (===), for a more relaxed
+     * comparison, see (@link TB.notEqual}
+     *
+     * @example TB.strictNotEqual(format("Received {0} bytes.", 2), "Received 2
+     * bytes.");
+	 *
+	 * @param {Object} actual The actual value of the assertion.
+	 * @param {Object} expected The expected value of the assertion.
+	 * @param {String} [message] The message to be displayed for this
+     * assertion.
+     */
+    this.strictNotEqual = function (actual, expected, message) {
+        data.currentTest.processResult(
+            assertion(
+                actual !== expected,
+                actual,
+                expected,
+                message
+            )
+        );
+    };
+
+    /**
+     * A deep recursive comparison assertion, working on primitive types,
+     * arrays and objects. Similar to equal, compares the content given
+     * objects. Its also more strict than equal: Comparisons are done using
+     * ===.  For a discussion of the concepts and reasons behind the
+     * implementation, see <a href="http://philrathe.com/articles/equiv">this
+     * article</a>.
+     *
+     * @param {Object} The object that is the actual resulting object of the
+     * assertion.
+     * @param {Object} The object that is the expected resulting object of the
+     * assertion.
+     * @param {String} message The message to display with the assertion.
+     */
+	this.deepEqual = function (actual, expected, message) {
+        data.currentTest.processResult(
+            assertion(
+                equiv(actual, expected),
+                actual,
+                expected,
+                message
+            )
+        );
+	};
+
+    /**
+     * A deep recursive comparison assertion, working on primitive types,
+     * arrays and objects. Similar to notEqual, compares the content given
+     * objects. Its also more strict than notEqual: Comparisons are done using
+     * ===.  For a discussion of the concepts and reasons behind the
+     * implementation, see <a href="http://philrathe.com/articles/equiv">this
+     * article</a>.
+     *
+     * @param {Object} The object that is the actual resulting object of the
+     * assertion.
+     * @param {Object} The object that is the expected resulting object of the
+     * assertion.
+     * @param {String} message The message to display with the assertion.
+     */
+	this.notDeepEqual = function (actual, expected, message) {
+        data.currentTest.processResult(
+            assertion(
+                !equiv(actual, expected),
+                actual,
+                expected,
+                message
+            )
+        );
+	};
+
+    /**
+     * Asserts that a given object has a method or field with the given
+     * property name.
+     * @param {Object} The object to check for a property.
+     * @param {String} The string name representation of the method or field to
+     * search the given Object for.
+     * @param {String} message The message to display with this assertion.
+     */
+    this.hasProperty = function (obj, prop, message) {
+        var r;
+        if (obj[prop] !== undefined) {
+            r = {result: true, message: message};
+        } else {
+            r = {result: false, message: message};
+        }
+
+        data.currentTest.processResult(r);
+    };
+
+    /**
+     * Borrowed from Qunit: http://docs.jquery.com/QUnit
+     * @ignore
+     */
+	this.raises = function (block, expected, message) {
+		var actual, ok = false;
+	
+		if (typeof expected === 'string') {
+			message = expected;
+			expected = null;
+		}
+	
+		try {
+			block();
+		} catch (e) {
+			actual = e;
+		}
+	
+		if (actual) {
+			// we don't want to validate thrown error
+			if (!expected) {
+				ok = true;
+			// expected is a regexp	
+			} else if (TB.objectType(expected) === "regexp") {
+				ok = expected.test(actual);
+			// expected is a constructor	
+			} else if (actual instanceof expected) {
+				ok = true;
+            // expected is a validation function which returns true is
+            // validation passed	
+            } else if (expected.call({}, actual) === true) {
+				ok = true;
+			}
+		}
+			
+		TB.ok(ok, message);
+	};
+
+    /**
+     * Asserts that a given object is defined.
+     * @param {*} test The value to test as being defined.
+     * @param {String} message The message to display with this assertion.
+     */
+    this.defined = function (test, message) {
+        var r;
+        if (test !== undefined) {
+            r = {result: true, message: message};
+        } else {
+            r = {result: false, message: message};
+        }
+
+        data.currentTest.processResult(r);
+    };
+    return this;
+}());
