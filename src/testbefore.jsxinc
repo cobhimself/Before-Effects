@@ -13,6 +13,9 @@
  * @version 0.1.0 dev
  */
 var TB = (function () {
+// Private Variables:
+//----------------------------------------------------------------------------
+
     var data = {},
         tests = [],
         modules = [],
@@ -30,6 +33,9 @@ var TB = (function () {
     data.currentTest = null;
     data.previousModule = null;
 
+// Private Methods:
+//----------------------------------------------------------------------------
+
     /**
      * Returns an object with a result and message that describes information
      * about the test.
@@ -42,8 +48,6 @@ var TB = (function () {
      * @inner
      */
     function assertion(result, actual, expected, message) {
-        var outcome;
-
         return {
             result: result,
             actual: actual.toString(),
@@ -52,11 +56,14 @@ var TB = (function () {
         };
     }
 
-    // Test for equality any JavaScript type.
-    // Discussions and reference: http://philrathe.com/articles/equiv
-    // Test suites: http://philrathe.com/tests/equiv
-    // Author: Philippe Rathé <prathe@gmail.com>
-    // Copied from qunit: http://docs.jquery.com/QUnit
+    /**
+     * Tests for equality of any JavaScript type.
+     * Discussions and reference: {@link http://philrathe.com/articles/equiv}
+     * Test suites: {@link http://philrathe.com/tests/equiv}
+     * Copied from qunit: {@link http://docs.jquery.com/QUnit}
+     * @author Philippe Rathé <prathe@gmail.com>
+     * @inner
+     */
     equiv = (function () {
 
         var innerEquiv, // the real equiv function
@@ -75,7 +82,7 @@ var TB = (function () {
                 }
             }
         }
-        
+
         callbacks = (function () {
 
             // for string, boolean, number and null
@@ -130,13 +137,13 @@ var TB = (function () {
                     // b could be an object literal here
                     if (TB.objectType(b) !== "array") {
                         return false;
-                    }   
-                    
+                    }
+
                     len = a.length;
                     if (len !== b.length) { // safe and faster
                         return false;
                     }
-                    
+
                     //track reference to avoid circular references
                     parents.push(a);
                     for (i = 0; i < len; i += 1) {
@@ -158,7 +165,7 @@ var TB = (function () {
                 "object": function (b, a) {
                     var i, j, loop,
                         eq = true, // unless we can proove it
-                        aProperties = [], // collection of strings 
+                        aProperties = [], // collection of strings
                         bProperties = []; // collection of strings
 
                     // comparing constructors is more strict than using
@@ -171,13 +178,13 @@ var TB = (function () {
                     callers.push(a.constructor);
                     //track reference to avoid circular references
                     parents.push(a);
-                    
+
                     for (i in a) {
                     // be strict: don't ensure hasOwnProperty and go deep
                         loop = false;
                         for (j = 0; j < parents.length; j += 1) {
                             if (parents[j] === a[i]) {
-                                //don't go down the same path twice 
+                                //don't go down the same path twice
                                 loop = true;
                             }
                         }
@@ -237,46 +244,6 @@ var TB = (function () {
     }());
 
     /**
-     * Returns the type of the given object as a lowercase string.
-     * Borrowed from QUnit: http://docs.jquery.com/QUnit
-     * @param {Object} obj An object to get the type of.
-     * @returns {String} A lowercase type string.
-     */
-	this.objectType = function (obj) {
-		if (typeof obj === "undefined") {
-            return "undefined";
-
-		// consider: typeof null === object
-		}
-		if (obj === null) {
-            return "null";
-		}
-
-		var type = Object.prototype.toString.call(obj)
-			.match(/^\[object\s(.*)\]$/)[1] || '';
-
-		switch (type) {
-            case 'Number':
-                if (isNaN(obj)) {
-                    return "nan";
-                } else {
-                    return "number";
-                }
-            case 'String':
-            case 'Boolean':
-            case 'Array':
-            case 'Date':
-            case 'RegExp':
-            case 'Function':
-                return type.toLowerCase();
-		}
-		if (typeof obj === "object") {
-            return "object";
-		}
-		return undefined;
-	};
-
-    /**
      * @namespace Default formatter object that outputs information
      * to the Extendscript console. This can be replaced with a custom
      * formatter object to extend the output functionality.
@@ -308,39 +275,34 @@ var TB = (function () {
             if (type === "moduleHeader") {
                 $.writeln(d.moduleName + " " +
                     "(" + this.pluralize(d.numTests, "test", "s") + ")");
-                $.writeln("=================");
-                $.writeln("");
+                $.writeln("=================\n");
             } else if (type === "moduleFooter") {
                 $.writeln("=================");
                 $.writeln(d.moduleName + " results: " +
                     "PASSED: " + d.passed + ", " +
-                    "FAILED: " + d.failed);
-                $.writeln("");
+                    "FAILED: " + d.failed + "\n");
             } else if (type === "testHeader") {
-                $.writeln(d.testName + " " + "(" +
+                $.writeln(d.testName + " (" +
                         this.pluralize(
                             d.numAssertions,
                             "assertion", "s"
                         ) + ")"
                 );
-                $.writeln("-----------------");
-                $.writeln("");
+                $.writeln("-----------------\n");
             } else if (type === "testFooter") {
-                $.writeln("");
-                $.writeln("-----------------");
+                $.writeln("\n-----------------");
                 $.writeln(d.testName + " results: " +
                     "PASSED: " + d.passed + ", " +
-                    "FAILED: " + d.failed);
-                $.writeln("");
+                    "FAILED: " + d.failed + "\n");
             } else if (type === "testResult") {
                 outcome = (d.result === true) ? "PASSED - " : "FAILED - ";
                 $.writeln(" > " + outcome + d.message);
 
-                if(d.expected != undefined) {
+                if(d.expected !== undefined) {
                     $.writeln("\t EXPECTED: " + d.expected);
                 }
 
-                if(d.actual != undefined) {
+                if(d.actual !== undefined) {
                     $.writeln("\t ACTUAL:   " + d.actual);
                 }
             } else if (type === "summary") {
@@ -356,6 +318,9 @@ var TB = (function () {
         }
     };
 
+// Private Classes:
+//----------------------------------------------------------------------------
+
     /**
      * Defines a group of tests.
      * @class Represents a group of tests.
@@ -366,7 +331,6 @@ var TB = (function () {
      * @property {Number} passed The number of tests that have passed.
      * @property {Number} failed The number of tests that have failed.
      * @property {Array} results[] An array of result objects.
-     * @private
      * @inner
      */
     Module = function (name) {
@@ -398,7 +362,7 @@ var TB = (function () {
             for (i = 0; i < max; i += 1) {
                 totalTests += 1;
                 currTest = this.tests[i];
-                
+
                 //Run the test.
                 r = currTest.run();
 
@@ -430,7 +394,7 @@ var TB = (function () {
                     passed: currTest.passed,
                     failed: currTest.failed
                 });
-                
+
                 //Update the pass/fail numbers and store the result
                 //in the module results array.
                 /*this.processResult(r);*/
@@ -457,7 +421,7 @@ var TB = (function () {
          */
         processResult: function (r) {
             this.results.push(r);
-            
+
             if (r.result === true) {
                 this.passed += 1;
             } else {
@@ -499,13 +463,18 @@ var TB = (function () {
      */
     Test.prototype = {
         run: function () {
-            /*this.init();*/
             data.currentTest = this;
+            //Run the function associated with this test.
             this.callback();
-            /*this.clean();*/
         },
         /**
-         * Processes a result from a test.
+         * Processes a result from a test and updates the total passed/failed
+         * values.
+         * @param {Object} r An Object that contains at least the following
+         * keys:
+         *     - result: true/false,
+         *     - message: A string message that goes along with this result.
+         * @returns Nothing.
          */
         processResult: function (r) {
             this.numAssertions += 1;
@@ -520,16 +489,76 @@ var TB = (function () {
                 this.failed += 1;
                 totalFailed += 1;
             }
-
         }
     };
 
+// Public Methods:
+//----------------------------------------------------------------------------
+
+    /**
+     * Returns the type of the given object as a lowercase string.
+     * Borrowed from QUnit: http://docs.jquery.com/QUnit
+     * @param {Object} obj An object to get the type of.
+     * @returns {String} A lowercase type string.
+     */
+	this.objectType = function (obj) {
+		if (typeof obj === "undefined") {
+            return "undefined";
+
+		// consider: typeof null === object
+		}
+		if (obj === null) {
+            return "null";
+		}
+
+		var type = Object.prototype.toString.call(obj)
+			.match(/^\[object\s(.*)\]$/)[1] || '';
+
+		switch (type) {
+            case 'Number':
+                if (isNaN(obj)) {
+                    return "nan";
+                } else {
+                    return "number";
+                }
+            case 'String':
+            case 'Boolean':
+            case 'Array':
+            case 'Date':
+            case 'RegExp':
+            case 'Function':
+                return type.toLowerCase();
+		}
+		if (typeof obj === "object") {
+            return "object";
+		}
+		return undefined;
+	};
+
+    /**
+     * Starts a module section for the current TB session.
+     * @param {String} name The name of this module.
+     * @returns Nothing.
+     */
     this.module = function (name) {
         modules.push(
             data.currentModule = new Module(name)
         );
     };
 
+    /**
+     * Adds a test to this TB session. If no module has been established,
+     * a "Main" Module is created.
+     * @example
+     * TB.test('Test Title', function () {
+     *     TB.equal(1, True, "True should be equal to 1");
+     * });
+     * 
+     * @param {String} name The name of this test.
+     * @param {Function} f A function that contains assertions to be run when
+     * this test is ran.
+     * @returns Nothing.
+     */
     this.test = function (name, f) {
         //Check to see if there is a module that exists for this test to be
         //added to.
@@ -537,11 +566,15 @@ var TB = (function () {
             //No module exists, create a main module.
             modules.push(data.currentModule = new Module("Main"));
         }
-        
+
         //Add the test to the current module
         modules[modules.length - 1].addTest(new Test(name, f));
     };
 
+    /**
+     * Runs the tests associated with this TB session.
+     * @returns Nothing.
+     */
     this.runTests = function () {
         var i,
             maxModules = modules.length,
@@ -553,7 +586,7 @@ var TB = (function () {
             data.currentModule = currModule = modules[i];
             totalModules += 1;
             maxTests = currModule.tests.length;
-            
+
             //Output module name
             formatter.output("moduleHeader", {
                 moduleName: currModule.name,
@@ -778,35 +811,35 @@ var TB = (function () {
      */
 	this.raises = function (block, expected, message) {
 		var actual, ok = false;
-	
+
 		if (typeof expected === 'string') {
 			message = expected;
 			expected = null;
 		}
-	
+
 		try {
 			block();
 		} catch (e) {
 			actual = e;
 		}
-	
+
 		if (actual) {
 			// we don't want to validate thrown error
 			if (!expected) {
 				ok = true;
-			// expected is a regexp	
+			// expected is a regexp
 			} else if (TB.objectType(expected) === "regexp") {
 				ok = expected.test(actual);
-			// expected is a constructor	
+			// expected is a constructor
 			} else if (actual instanceof expected) {
 				ok = true;
             // expected is a validation function which returns true is
-            // validation passed	
+            // validation passed
             } else if (expected.call({}, actual) === true) {
 				ok = true;
 			}
 		}
-			
+
 		TB.ok(ok, message);
 	};
 

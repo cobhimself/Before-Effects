@@ -1,0 +1,214 @@
+<html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"> <style>
+	.KEYW {color: #933;}
+	.COMM {color: #bbb; font-style: italic;}
+	.NUMB {color: #393;}
+	.STRN {color: #393;}
+	.REGX {color: #339;}
+	.line {border-right: 1px dotted #666; color: #666; font-style: normal;}
+	</style></head><body><pre><span class='line'>  1</span> <span class="COMM">/**
+<span class='line'>  2</span> * @fileoverview The Before Effects prototype module adds methods to built-in
+<span class='line'>  3</span> * JavaScript and ExtendScript objects if they don't exist. Additional prototypes that will be included in a later
+<span class='line'>  4</span> * release are listed under the todo section.
+<span class='line'>  5</span> * @author Collin D. Brooks &lt;collin.brooks@gmail.com>
+<span class='line'>  6</span> * @version 0.1.0 dev
+<span class='line'>  7</span> * TODO:
+<span class='line'>  8</span> * Add the following prototypes to the Array Object based upon the standards within ECMA-262 5th edition:
+<span class='line'>  9</span> * Array.prototype.isArray (
+<span class='line'> 10</span> * Array.prototype.indexOf (15.4.4.14)
+<span class='line'> 11</span> * Array.prototype.lastIndexOf (15.4.4.15)
+<span class='line'> 12</span> * Array.prototype.every (15.4.4.16)
+<span class='line'> 13</span> * Array.prototype.some (15.4.4.17)
+<span class='line'> 14</span> * Array.prototype.forEach (15.4.4.18)
+<span class='line'> 15</span> * Array.prototype.map (15.4.4.19)
+<span class='line'> 16</span> * Array.prototype.reduce (15.4.4.21)
+<span class='line'> 17</span> * Array.prototype.reduceRight (15.4.4.22)
+<span class='line'> 18</span> *
+<span class='line'> 19</span> * Add the following prototypes to the String Object based upon the standards within ECMA-262 5th edition:
+<span class='line'> 20</span> * 
+<span class='line'> 21</span> */</span><span class="WHIT">
+<span class='line'> 22</span> 
+<span class='line'> 23</span> </span><span class="COMM">//See if BE is already defined</span><span class="WHIT">
+<span class='line'> 24</span> </span><span class="NAME">BE</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">BE</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 25</span> 
+<span class='line'> 26</span> </span><span class="COMM">/*****************************************************************************\
+<span class='line'> 27</span> * >>> Function Prototypes
+<span class='line'> 28</span> \*****************************************************************************/</span><span class="WHIT">
+<span class='line'> 29</span> 
+<span class='line'> 30</span> </span><span class="COMM">/*****************************************************************************\
+<span class='line'> 31</span> * >>> Function Prototypes
+<span class='line'> 32</span> \*****************************************************************************/</span><span class="WHIT">
+<span class='line'> 33</span> </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">Function.method</span><span class="WHIT"> </span><span class="PUNC">===</span><span class="WHIT"> </span><span class="STRN">"undefined"</span><span class="PUNC">)</span><span class="WHIT">
+<span class='line'> 34</span> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 35</span> </span><span class="WHIT">    </span><span class="COMM">/**
+<span class='line'> 36</span>      * Adds a method conditionally. If the method does not exist, it is created and
+<span class='line'> 37</span>      * defined to be that of the given function.
+<span class='line'> 38</span>      *
+<span class='line'> 39</span>      * @param {String} name The name of the method.
+<span class='line'> 40</span>      * @param {Function} func The function to be defined as the method.
+<span class='line'> 41</span>      * @returns Nothing.
+<span class='line'> 42</span>      */</span><span class="WHIT">
+<span class='line'> 43</span> </span><span class="WHIT">    </span><span class="NAME">Function.prototype.method</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">name</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">func</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 44</span> </span><span class="WHIT">        </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">this.prototype</span><span class="PUNC">[</span><span class="NAME">name</span><span class="PUNC">]</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 45</span> </span><span class="WHIT">            </span><span class="NAME">this.prototype</span><span class="PUNC">[</span><span class="NAME">name</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">func</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 46</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 47</span> </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'> 48</span> </span><span class="COMM">/*****************************************************************************\
+<span class='line'> 49</span> * >>> Array Prototypes
+<span class='line'> 50</span> \*****************************************************************************/</span><span class="WHIT">
+<span class='line'> 51</span> 
+<span class='line'> 52</span> </span><span class="NAME">Array.method</span><span class="PUNC">(</span><span class="STRN">"isArray"</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 53</span> </span><span class="WHIT">    </span><span class="COMM">/**
+<span class='line'> 54</span>      * Determines whether or not an object is an array.
+<span class='line'> 55</span>      * @name isArray
+<span class='line'> 56</span>      * @param {Object} arg The object to test for arrayness.
+<span class='line'> 57</span>      * @returns {Bool} True if the object is an array. False if it isn't.
+<span class='line'> 58</span>      */</span><span class="WHIT">
+<span class='line'> 59</span> </span><span class="WHIT">    </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">arg</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 60</span> </span><span class="WHIT">        </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">Object.prototype.toString.call</span><span class="PUNC">(</span><span class="NAME">arg</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">===</span><span class="WHIT"> </span><span class="STRN">"[object Array]"</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 61</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'> 62</span> </span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 63</span> 
+<span class='line'> 64</span> 
+<span class='line'> 65</span> 
+<span class='line'> 66</span> </span><span class="NAME">Array.method</span><span class="PUNC">(</span><span class="STRN">"inArray"</span><span class="PUNC">,</span><span class="WHIT"> 
+<span class='line'> 67</span>     </span><span class="COMM">/**
+<span class='line'> 68</span>      * Determines whether or not a given value is within a given array.
+<span class='line'> 69</span>      * @name inArray
+<span class='line'> 70</span>      * @memberOf Array
+<span class='line'> 71</span>      * @param {Any} needle The needle to search for
+<span class='line'> 72</span>      * @param {Array} haystack The array (haystack) to search for the needle in.
+<span class='line'> 73</span>      * @returns {Array} True if the needle is found, false if it isn't
+<span class='line'> 74</span>      * TODO: Verify the haystack is truly an Array Object!
+<span class='line'> 75</span>      */</span><span class="WHIT">
+<span class='line'> 76</span> </span><span class="WHIT">    </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">needle</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">haystack</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 77</span> </span><span class="WHIT">        </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">i</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 78</span> </span><span class="WHIT">        </span><span class="KEYW">for</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">i</span><span class="WHIT"> </span><span class="KEYW">in</span><span class="WHIT"> </span><span class="NAME">haystack</span><span class="PUNC">)</span><span class="WHIT">
+<span class='line'> 79</span> </span><span class="WHIT">        </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 80</span> </span><span class="WHIT">            </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">haystack</span><span class="PUNC">[</span><span class="NAME">i</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">===</span><span class="WHIT"> </span><span class="NAME">needle</span><span class="PUNC">)</span><span class="WHIT">
+<span class='line'> 81</span> </span><span class="WHIT">            </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 82</span> </span><span class="WHIT">                </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="KEYW">true</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 83</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'> 84</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'> 85</span> </span><span class="WHIT">        </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 86</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'> 87</span> </span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 88</span> 
+<span class='line'> 89</span> </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">Array.hasOwnProperty</span><span class="PUNC">(</span><span class="STRN">"filter"</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 90</span> </span><span class="WHIT">    </span><span class="COMM">/**
+<span class='line'> 91</span>      * Filters an array based upon a filter function.
+<span class='line'> 92</span>      * @param {Array} a The array to filter
+<span class='line'> 93</span>      * @param {Function} f The function to use when filtering the array. If the
+<span class='line'> 94</span>      * function returns true, the item in the array is included in the final
+<span class='line'> 95</span>      * filtered list. If it is false, it is ignored. This function should allow
+<span class='line'> 96</span>      * for one argument only.
+<span class='line'> 97</span>      * @returns {Array}
+<span class='line'> 98</span>      *TODO:
+<span class='line'> 99</span>      * Needs to conform to ECMA-262 5th edition (15.4.4.20)
+<span class='line'>100</span>      */</span><span class="WHIT">
+<span class='line'>101</span> </span><span class="WHIT">    </span><span class="NAME">Array.prototype.filter</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">a</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">f</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>102</span> </span><span class="WHIT">        </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">newArray</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">[</span><span class="PUNC">]</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">i</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>103</span> </span><span class="WHIT">        </span><span class="KEYW">for</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">i</span><span class="WHIT"> </span><span class="KEYW">in</span><span class="WHIT"> </span><span class="NAME">a</span><span class="PUNC">)</span><span class="WHIT">
+<span class='line'>104</span> </span><span class="WHIT">        </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>105</span> </span><span class="WHIT">            </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">f</span><span class="PUNC">(</span><span class="NAME">i</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT">
+<span class='line'>106</span> </span><span class="WHIT">            </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>107</span> </span><span class="WHIT">                </span><span class="NAME">newArray</span><span class="PUNC">[</span><span class="NAME">newArray.length</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">i</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>108</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>109</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>110</span> </span><span class="WHIT">        </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">newArray</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>111</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>112</span> </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>113</span> 
+<span class='line'>114</span> </span><span class="COMM">/*****************************************************************************\
+<span class='line'>115</span> * >>> String Prototypes
+<span class='line'>116</span> \*****************************************************************************/</span><span class="WHIT">
+<span class='line'>117</span> 
+<span class='line'>118</span> </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">String.hasOwnProperty</span><span class="PUNC">(</span><span class="STRN">"trim"</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>119</span> </span><span class="WHIT">	</span><span class="COMM">/**
+<span class='line'>120</span> 	 * Removes white space at the beginning & end of a string
+<span class='line'>121</span> 	 * @returns {String} A string without whitespace at the end or beginning
+<span class='line'>122</span>      * TODO:
+<span class='line'>123</span>      * Verify conformity with ECMA-262 5th edition (15.5.4.20)
+<span class='line'>124</span> 	 */</span><span class="WHIT">
+<span class='line'>125</span> </span><span class="WHIT">	</span><span class="NAME">String.prototype.trim</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>126</span> </span><span class="WHIT">		</span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">this.replace</span><span class="PUNC">(</span><span class="REGX">/^\s*/</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="STRN">""</span><span class="PUNC">)</span><span class="PUNC">.</span><span class="NAME">replace</span><span class="PUNC">(</span><span class="REGX">/\s*$/</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="STRN">""</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>127</span> </span><span class="WHIT">	</span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>128</span> </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>129</span> 
+<span class='line'>130</span> </span><span class="COMM">/*****************************************************************************\
+<span class='line'>131</span> * >>> ItemCollection Prototypes
+<span class='line'>132</span> \*****************************************************************************/</span><span class="WHIT">
+<span class='line'>133</span> 
+<span class='line'>134</span> </span><span class="COMM">/*if (ItemCollection !== undefined && !ItemCollection.hasOwnProperty("inItemCollection")) {*/</span><span class="WHIT">
+<span class='line'>135</span> 
+<span class='line'>136</span> </span><span class="WHIT">    </span><span class="COMM">/**
+<span class='line'>137</span>      *Determines whether or not a given name matches any of the Item names in
+<span class='line'>138</span>      *the given ItemCollection. After Effect's ItemCollection is like an array
+<span class='line'>139</span>      *but is not. Unfortunately, this means (beside the fact that the inArray
+<span class='line'>140</span>      *function is currently not supported by default) there is no default way
+<span class='line'>141</span>      *finding whether or not an item exists within a given collection.
+<span class='line'>142</span>      *@param {String} n The name to search for within the ItemCollection
+<span class='line'>143</span>      *@param {ItemCollection} coll The ItemCollection to search.
+<span class='line'>144</span>      *@param {Bool} dupDetect True to make sure the given name is only found
+<span class='line'>145</span>      *once. False to ignore whether or not there are multiple Items with the
+<span class='line'>146</span>      *given name.
+<span class='line'>147</span>      *@returns {Bool|null} If &lt;code>dupDetect&lt;/code> is false, and at least one
+<span class='line'>148</span>      *item with the given name is found, true is returned. If
+<span class='line'>149</span>      *&lt;code>dupDetect&lt;/code> is true, and only one item with the given name is
+<span class='line'>150</span>      *found, true is returned. False is returned when an Item with the given
+<span class='line'>151</span>      *name cannot be found at all. Null is returned when &lt;code>dupDetect&lt;/code>
+<span class='line'>152</span>      *is set to true and multiple Items are found with the given name.
+<span class='line'>153</span>      *
+<span class='line'>154</span>      *TODO:
+<span class='line'>155</span>      *-Allow for more specific duplicate detection based upon the type of the
+<span class='line'>156</span>      *item
+<span class='line'>157</span>      */</span><span class="WHIT">
+<span class='line'>158</span> </span><span class="WHIT">    </span><span class="COMM">/*ItemCollection.prototype.inItemCollection = function (n, coll, dupDetect) {*/</span><span class="WHIT">
+<span class='line'>159</span> </span><span class="WHIT">        </span><span class="COMM">/*var i,*/</span><span class="WHIT">
+<span class='line'>160</span> </span><span class="WHIT">        </span><span class="COMM">/*index = {};*/</span><span class="WHIT">
+<span class='line'>161</span> 
+<span class='line'>162</span> </span><span class="WHIT">        </span><span class="COMM">/*if (!dupDetect)*/</span><span class="WHIT">
+<span class='line'>163</span> </span><span class="WHIT">        </span><span class="COMM">/*{*/</span><span class="WHIT">
+<span class='line'>164</span> </span><span class="WHIT">            </span><span class="COMM">/*dupDetect = false;*/</span><span class="WHIT">
+<span class='line'>165</span> </span><span class="WHIT">        </span><span class="COMM">/*}*/</span><span class="WHIT">
+<span class='line'>166</span> </span><span class="WHIT">        
+<span class='line'>167</span>         </span><span class="COMM">/*for (i = 1; i &lt;= coll.length; i += 1) {*/</span><span class="WHIT">
+<span class='line'>168</span> 
+<span class='line'>169</span> </span><span class="WHIT">            </span><span class="COMM">/*/</span><span class="REGX">/Keep track of the items?*/</span><span class="WHIT">
+<span class='line'>170</span> </span><span class="WHIT">            </span><span class="COMM">/*if (dupDetect) {*/</span><span class="WHIT">
+<span class='line'>171</span> </span><span class="WHIT">                </span><span class="COMM">/*if (index[i])*/</span><span class="WHIT">
+<span class='line'>172</span> </span><span class="WHIT">                </span><span class="COMM">/*{*/</span><span class="WHIT">
+<span class='line'>173</span> </span><span class="WHIT">                    </span><span class="COMM">/*/</span><span class="REGX">/Item exists already, return null*/</span><span class="WHIT">
+<span class='line'>174</span> </span><span class="WHIT">                    </span><span class="COMM">/*return null;*/</span><span class="WHIT">
+<span class='line'>175</span> </span><span class="WHIT">                </span><span class="COMM">/*} else {*/</span><span class="WHIT">
+<span class='line'>176</span> </span><span class="WHIT">                    </span><span class="COMM">/*index[i] = coll[i].name;*/</span><span class="WHIT">
+<span class='line'>177</span> </span><span class="WHIT">                </span><span class="COMM">/*}*/</span><span class="WHIT">
+<span class='line'>178</span> </span><span class="WHIT">            </span><span class="COMM">/*}*/</span><span class="WHIT">
+<span class='line'>179</span> 
+<span class='line'>180</span> </span><span class="WHIT">            </span><span class="COMM">/*/</span><span class="REGX">/Does the current Item have the given name?*/</span><span class="WHIT">
+<span class='line'>181</span> </span><span class="WHIT">            </span><span class="COMM">/*if (coll[i].name === n) {*/</span><span class="WHIT">
+<span class='line'>182</span> </span><span class="WHIT">                </span><span class="COMM">/*return true;*/</span><span class="WHIT">
+<span class='line'>183</span> </span><span class="WHIT">            </span><span class="COMM">/*}*/</span><span class="WHIT">
+<span class='line'>184</span> 
+<span class='line'>185</span> </span><span class="WHIT">        </span><span class="COMM">/*}*/</span><span class="WHIT">
+<span class='line'>186</span> </span><span class="WHIT">        </span><span class="COMM">/*return false;*/</span><span class="WHIT">
+<span class='line'>187</span> </span><span class="WHIT">    </span><span class="COMM">/*};*/</span><span class="WHIT">
+<span class='line'>188</span> </span><span class="COMM">/*}*/</span><span class="WHIT">
+<span class='line'>189</span> 
+<span class='line'>190</span> </span><span class="COMM">/*****************************************************************************\
+<span class='line'>191</span> * >>> ListItem Prototypes
+<span class='line'>192</span> \*****************************************************************************/</span><span class="WHIT">
+<span class='line'>193</span> 
+<span class='line'>194</span> 
+<span class='line'>195</span> </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">ListItem</span><span class="WHIT"> </span><span class="PUNC">!==</span><span class="WHIT"> </span><span class="NAME">undefined</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="PUNC">!</span><span class="NAME">ListItem.hasOwnProperty</span><span class="PUNC">(</span><span class="STRN">"data"</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>196</span> </span><span class="WHIT">    </span><span class="COMM">/**
+<span class='line'>197</span>      * Provides a place where information about each ListItem element can be
+<span class='line'>198</span>      * stored. This is useful if you want references to actual Objects that
+<span class='line'>199</span>      * the ListItems reflect. For example, each list item could have their
+<span class='line'>200</span>      * text set to the name of a composition and a reference to that composition
+<span class='line'>201</span>      * could be saved within the data object of the ListItem.
+<span class='line'>202</span>      * @type {Object}
+<span class='line'>203</span>      */</span><span class="WHIT">
+<span class='line'>204</span> </span><span class="WHIT">    </span><span class="NAME">ListItem.prototype.data</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>205</span> </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>206</span> 
+<span class='line'>207</span> </span></pre></body></html>

@@ -1,0 +1,313 @@
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+	<head>
+		<meta http-equiv="content-type" content="IE=edge,chrome=1" charset="utf-8" />
+		<meta name="generator" content="JsDoc Toolkit" />
+		
+		<title>BE.ui.viewsConstructor</title>
+        <link rel="stylesheet" href="../css/default.css" type="text/css" media="screen, projection">
+	</head>
+
+	<body>
+<!-- ============================== header ================================= -->	
+		<!-- begin static/header.html -->
+		<div id="header">
+</div>
+		<!-- end static/header.html -->
+
+<!-- ============================== classes index ============================ -->
+		<div id="index">
+			<!-- begin publish.classesIndex -->
+			<div align="center"><a href="../index.html">Class Index</a>
+| <a href="../files.html">File Index</a></div>
+<hr />
+<h2>Classes</h2>
+<ul class="classList">
+	
+	<li><i><a href="../symbols/_global_.html">_global_</a></i></li>
+	
+	<li><a href="../symbols/Array.html">Array</a></li>
+	
+	<li><a href="../symbols/BE.html">BE</a></li>
+	
+	<li><a href="../symbols/BE.comp.html">BE.comp</a></li>
+	
+	<li><a href="../symbols/BE.ERROR.html">BE.ERROR</a></li>
+	
+	<li><a href="../symbols/BE.layer.html">BE.layer</a></li>
+	
+	<li><a href="../symbols/BE.log.html">BE.log</a></li>
+	
+	<li><a href="../symbols/BE.proj.html">BE.proj</a></li>
+	
+	<li><a href="../symbols/BE.time.html">BE.time</a></li>
+	
+	<li><a href="../symbols/BE.ui.html">BE.ui</a></li>
+	
+	<li><a href="../symbols/BE.ui.viewsConstructor.html">BE.ui.viewsConstructor</a></li>
+	
+	<li><a href="../symbols/BE.util.SettingsManager.html">BE.util.SettingsManager</a></li>
+	
+	<li><a href="../symbols/String.html">String</a></li>
+	
+</ul>
+<hr />
+			<!-- end publish.classesIndex -->
+		</div>
+		
+		<div id="content">
+<!-- ============================== class title ============================ -->
+			<h1 class="classTitle">
+				
+				Class BE.ui.viewsConstructor
+			</h1>
+
+<!-- ============================== class summary ========================== -->			
+			<p class="description">
+				
+				
+			
+				Takes a given window or palette object and assits in the creation of
+different views for the UI.
+
+The power comes in its ability to keep track of and give easy access to
+the hidden/shown views. Views are offered back to the user as a named
+array of references to the base Group object of each view.
+				
+				
+					<br /><i>Defined in: </i> <a href="../symbols/src/_Users_collinbrooks_Dropbox_Scripts_AEScripts_BeforeEffects_src_ui_ui.jsxinc.html">ui.jsxinc</a>.
+				
+			</p>
+
+<!-- ============================== constructor summary ==================== -->			
+			
+			<table class="summaryTable" cellspacing="0" summary="A summary of the constructor documented in the class BE.ui.viewsConstructor.">
+				<caption>Class Summary</caption>
+				<thead>
+					<tr>
+						<th scope="col">Constructor Attributes</th>
+						<th scope="col">Constructor Name and Description</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td class="attributes">&nbsp;</td>
+						<td class="nameDescription" >
+							<div class="fixedFont">
+								<b><a href="../symbols/BE.ui.viewsConstructor.html#constructor">BE.ui.viewsConstructor</a></b>(w, windowProps)
+							</div>
+							<div class="description"></div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			
+
+<!-- ============================== properties summary ===================== -->
+			
+
+<!-- ============================== methods summary ======================== -->
+			
+				
+				
+				<table class="summaryTable" cellspacing="0" summary="A summary of the methods documented in the class BE.ui.viewsConstructor.">
+					<caption>Method Summary</caption>
+					<thead>
+						<tr>
+							<th scope="col">Method Attributes</th>
+							<th scope="col">Method Name and Description</th>
+						</tr>
+					</thead>
+					<tbody>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">BE.ui.viewsConstructor.<b><a href="../symbols/BE.ui.viewsConstructor.html#.finalResource">finalResource</a></b>()
+								</div>
+								<div class="description">Returns the final resource string of this ViewConstructor.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">BE.ui.viewsConstructor.<b><a href="../symbols/BE.ui.viewsConstructor.html#.formatRes">formatRes</a></b>(r)
+								</div>
+								<div class="description">Formats a resource string</div>
+							</td>
+						</tr>
+					
+					</tbody>
+				</table>
+				
+				
+				
+			
+<!-- ============================== events summary ======================== -->
+			
+
+<!-- ============================== constructor details ==================== -->		
+			
+			<div class="details"><a name="constructor"> </a>
+				<div class="sectionTitle">
+					Class Detail
+				</div>
+				
+				<div class="fixedFont">
+						<b>BE.ui.viewsConstructor</b>(w, windowProps)
+				</div>
+				
+				<div class="description">
+					
+					
+				</div>
+				
+				
+				
+				
+					
+						<dl class="detailList">
+						<dt class="heading">Parameters:</dt>
+						
+							<dt>
+								<span class="light fixedFont">{Window|Palette}</span>  <b>w</b>
+								
+							</dt>
+								<dd>The Window or Palette to base this window off of.</dd>
+						
+							<dt>
+								<span class="light fixedFont">{<a href="../symbols/String.html">String</a>}</span>  <b>windowProps</b>
+								
+							</dt>
+								<dd>A string of different properties that should
+be set within the main group of the Window|Palette. Commas need only be
+present between defined properties, not at the end.
+
+Example:
+
+"orientation: 'column', alignment: ['left', 'middle']"</dd>
+						
+						</dl>
+					
+					
+					
+					
+					
+						<dl class="detailList">
+						<dt class="heading">Returns:</dt>
+						
+								<dd><span class="light fixedFont">{ViewsConstructor}</span> The ViewsConstructor object that contains all
+of the information about created Window or Palette. The 'build' method
+returns the actual window resource that should be used.</dd>
+						
+						</dl>
+					
+					
+					
+
+			</div>
+			
+
+<!-- ============================== field details ========================== -->		
+			
+
+<!-- ============================== method details ========================= -->		
+			
+				<div class="sectionTitle">
+					Method Detail
+				</div>
+				
+					<a name=".finalResource"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					<span class="light">{<a href="../symbols/String.html">String</a>}</span>
+					<span class="light">BE.ui.viewsConstructor.</span><b>finalResource</b>()
+					
+					</div>
+					<div class="description">
+						Returns the final resource string of this ViewConstructor.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/String.html">String</a>}</span> The resource string of the window constructed by
+this ViewConstructor wrapped within group{} and with the window
+properties set upon creation of this ViewConstructor.</dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name=".formatRes"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					<span class="light">{<a href="../symbols/String.html">String</a>}</span>
+					<span class="light">BE.ui.viewsConstructor.</span><b>formatRes</b>(r)
+					
+					</div>
+					<div class="description">
+						Formats a resource string
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{<a href="../symbols/String.html">String</a>}</span> <b>r</b>
+									
+								</dt>
+								<dd>The resource string to format</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/String.html">String</a>}</span> The formatted resource string.</dd>
+							
+							</dl>
+						
+						
+						
+
+					
+				
+			
+			
+<!-- ============================== event details ========================= -->		
+			
+			
+			<hr />
+		</div>
+
+		
+<!-- ============================== footer ================================= -->
+		<div class="fineprint" style="clear:both">
+			&copy;2010<br />
+			Documentation generated by <a href="http://code.google.com/p/jsdoc-toolkit/" target="_blank">JsDoc Toolkit</a> 2.4.0 on Sun May 22 2011 22:54:53 GMT-0500 (CDT)
+		</div>
+	</body>
+</html>
