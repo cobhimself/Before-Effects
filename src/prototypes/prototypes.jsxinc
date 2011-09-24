@@ -40,7 +40,7 @@ BE = BE || {};
 * >>> Array Prototypes
 \*****************************************************************************/
 
-Array.method("isArray",
+if (!Array.hasOwnProperty("isArray")) {
     /**
      * Determines whether or not an object is an array.
      * @memberOf Array
@@ -48,7 +48,7 @@ Array.method("isArray",
      * @param {*} arg The object to test for arrayness.
      * @returns {Bool} True if the object is an array. False if it isn't.
      */
-    function (arg) {
+    Array.prototype.isArray = function (arg) {
         if (arg && arg instanceof Array ||
             (typeof arg === 'object' &&
             typeof arg.length === 'number' &&
@@ -59,12 +59,10 @@ Array.method("isArray",
         } else {
             return false;
         }
-    }
-);
+    };
+}
 
-
-
-Array.method("inArray", 
+if (!Array.hasOwnProperty("inArray")) {
     /**
      * Determines whether or not a given value is within a given array.
      * @name inArray
@@ -74,7 +72,7 @@ Array.method("inArray",
      * @returns {Array} True if the needle is found, false if it isn't
      * TODO: Verify the haystack is truly an Array Object!
      */
-    function (needle, haystack) {
+    Array.prototype.inArray = function (needle, haystack) {
         var i;
         for (i in haystack)
         {
@@ -84,8 +82,8 @@ Array.method("inArray",
             }
         }
         return false;
-    }
-);
+    };
+}
 
 if (!Array.hasOwnProperty("filter")) {
     /**
@@ -166,7 +164,7 @@ if (!String.hasOwnProperty("trim")) {
         /*{*/
             /*dupDetect = false;*/
         /*}*/
-        
+
         /*for (i = 1; i <= coll.length; i += 1) {*/
 
             /*//Keep track of the items?*/

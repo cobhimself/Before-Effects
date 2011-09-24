@@ -6,8 +6,8 @@
 */
 
 BE.provide('BE.comp');
+BE.require('BE.prototypes');
 
-BE.require('BE.log');
 /******************************************************************\
  >>>>>>> COMP Helper
 \******************************************************************/
@@ -25,28 +25,49 @@ BE.comp = {
 
 
 /**
- *Returns an array of the layer names within a given composition optionally
- *filtering out certain types of layers.
- *@param {CompItem} c The composition whose layer names are to be returned
- *@param {String[]} [f] An array of strings representing the type of layer
- *to be included in the returned array. If not set, nothing is filtered.
+ * Returns an array of the layer names within a given composition optionally
+ * filtering out certain types of layers.
+ * @param {CompItem} c The composition whose layer names are to be returned
+ * @param {String[]|String} [f] An array of strings, or a single string,
+ * representing the type of layer to be included in the returned array. If not
+ * set, nothing is filtered.
  *
- *Example: 'LightLayer', 'AVLayer', 'CameraLayer', 'ShapeLayer'
- *@return {String[]} An array of the names of the layers within the comp.
+ * Example: 'LightLayer', 'AVLayer', 'CameraLayer', 'ShapeLayer'
+ * @return {String[]} An array of the names of the layers within the comp.
  */
 BE.comp.getLayerNames = function (c, f) {
-	var i, names = [], currentLayer, noFilter,
-		r = new Regex("/^\[object (.+)\]/");
+    /*$.bp();*/
+	var i,
+        log = BE.log, //dependancy
+        names = [],
+        max = c.numLayers,
+        currentLayer,
+        noFilter,
+		r = /^\[object (.+)\]/;
+
+    //Is the filter a string? If so, create a new array with the string as the
+    //first item.
+    if(BE.isString(f)) {
+        f = [f];
+    }
+
+    log.debug("Getting Layer Names from comp: " + c.name);
 
 	noFilter = (f) ? false : true;
 
-	for (i = 1; i <= c.numLayers; i += 1) {
-		currentLayer = c.layer[i];
+    log.debug("Filter :" + ((noFilter) ? "undefined" : f.toSource()));
+
+	for (i = 1; i <= max; i += 1) {
+		currentLayer = c.layer(i);
+        log.debug("Current Layer: " + currentLayer.name);
 		if (!noFilter) {
-			if ( f.inArray(r.exec(currentLayer.toString())[0], f)) {
+            log.debug("Adding " + currentLayer.name);
+			if ( f.inArray(r.exec(currentLayer.toString())[1], f)) {
+
 				names.push(currentLayer.name);
 			}
 		} else {
+            log.debug("Adding " + currentLayer.name);
 			names.push(currentLayer.name);
 		}
 	}
@@ -73,6 +94,12 @@ BE.comp.getFilteredLayers = function (c, f) {
 		r = /^\[object\ (.+)\]/,
         currentType;
 
+    //Is the filter a string? If so, create a new array with the string as the
+    //first item.
+    if(BE.isString(f)) {
+        f = [f];
+    }
+
 	log.debug("Getting filtered Layers...");
 	log.debug("Comp Name: " + c.name);
 	log.debug("Filter: " + f.toString());
@@ -85,7 +112,7 @@ BE.comp.getFilteredLayers = function (c, f) {
 		currentType = r.exec(currentLayer.toString())[1];
 		log.debug("Current type: " + currentType);
 		if (!noFilter && currentType) {
-			if ( f.inArray(currentType, f)) {
+			if (f.inArray(currentType, f)) {
 				log.debug("Adding " + currentLayer.name + " to list");
 				names.push(currentLayer.name);
 			}

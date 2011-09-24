@@ -32,7 +32,7 @@ var BE = (function () {
      * >>> Private Variables
      * All private variables end with a _ except for 'that'
     \*************************************************************************/
-	
+
     /**
      * A reference to this function's <code>this</code> value for use within
      * methods/functions defined by the <code>BE</code> Object.
@@ -41,7 +41,7 @@ var BE = (function () {
      * @inner
      * @private
      */
-    
+
     var that = this,
 
     /**
@@ -124,7 +124,7 @@ var BE = (function () {
         }
         return parent;
     };
-    
+
     /*************************************************************************\
      * >>> Public Properties:
     \*************************************************************************/
@@ -135,7 +135,7 @@ var BE = (function () {
      * @type {String}
      */
     this.BASE_PATH = new Folder(new File($.fileName).parent.fsName).fsName;
-    
+
 
 	/*************************************************************************\
 	* >>> Public Methods
@@ -182,7 +182,7 @@ var BE = (function () {
                 dependencies_.visited[name] = false;
                 log.error('Error in requiring ' + name);
             }
-            
+
         }
     };
 
@@ -263,6 +263,90 @@ var BE = (function () {
         return path;
     };
 
+    /**
+     * Returns true if the specified value is an array
+     * @param {*} val Variable to test.
+     * @return {boolean} Whether variable is an array.
+     */
+    this.isArray = function(val) {
+      return that.typeOf(val) == 'array';
+    };
+
+    /**
+     * Returns true if the object looks like an array. To qualify as array like
+     * the value needs to be an object with a Number length property.
+     * @param {*} val Variable to test.
+     * @return {boolean} Whether val is an array.
+     * Borrowed from Google's Closure library: {@link http://code.google.com/p/closure/library}
+     */
+    this.isArrayLike = function(val) {
+      var type = that.typeOf(val);
+      return type == 'array' || type == 'object' && typeof val.length == 'number';
+    };
+
+    /**
+     * This is a "fixed" version of the typeof operator.  It differs from the typeof
+     * operator in such a way that null returns 'null' and arrays return 'array'.
+     * @param {*} value The value to get the type of.
+     * @return {string} The name of the type.
+     * Borrowed from Google's Closure library: {@link http://code.google.com/p/closure/library}
+     */
+    this.typeOf = function(value) {
+      var s = typeof value,
+          className;
+
+      if (s == 'object') {
+        if (value) {
+          // Check these first, so we can avoid calling Object.prototype.toString if
+          // possible.
+          if (value instanceof Array) {
+            return 'array';
+          } else if (value instanceof Object) {
+            return s;
+          }
+
+          // HACK: In order to use an Object prototype method on the arbitrary
+          //   value, the compiler requires the value be cast to type Object,
+          //   even though the ECMA spec explicitly allows it.
+          var className = Object.prototype.toString.call(
+              /** @type {Object} */ (value));
+
+          if ((className == '[object Array]' ||
+               // In IE all non value types are wrapped as objects across window
+               // boundaries (not iframe though) so we have to do object detection
+               // for this edge case
+               typeof value.length == 'number' &&
+               typeof value.splice != 'undefined' &&
+               typeof value.propertyIsEnumerable != 'undefined' &&
+               !value.propertyIsEnumerable('splice')
+
+              )) {
+            return 'array';
+          }
+          // HACK: There is still an array case that fails.
+          //     function ArrayImpostor() {}
+          //     ArrayImpostor.prototype = [];
+          //     var impostor = new ArrayImpostor;
+          // this can be fixed by getting rid of the fast path
+          // (value instanceof Array) and solely relying on
+          // (value && Object.prototype.toString.vall(value) === '[object Array]')
+          // but that would require many more function calls and is not warranted
+          // unless closure code is receiving objects from untrusted sources.
+
+          if ((className == '[object Function]' ||
+              typeof value.call != 'undefined' &&
+              typeof value.propertyIsEnumerable != 'undefined' &&
+              !value.propertyIsEnumerable('call'))) {
+            return 'function';
+          }
+
+        } else {
+          return 'null';
+        }
+
+      }
+      return s;
+    };
 
     /**
      * Returns true if the specified value is not |undefined|.
@@ -330,9 +414,9 @@ var BE = (function () {
      */
     this.isDefAndNotNull = function (val) {
       // Note that undefined == null.
-      return val !== null;
+      return val !== null && val !== undefined;
     };
-    
+
 
     /**
      * Returns true if the specified value is a string
@@ -371,26 +455,37 @@ var BE = (function () {
 
 
     /**
-     * Returns true if the specified value is a function.
+     * Returns true if the specified value is a function
      * @param {*} val Variable to test.
-     * @returns {boolean} Whether variable is a function.
+     * @return {boolean} Whether variable is a function.
      */
-    this.isFunc = function (val) {
-        if (!(val instanceof Object) &&
-            (Object.prototype.toString.call(
-            /** @type {Object} */ (val)) === '[object Function]' ||
-            (typeof val.call !== 'undefined' &&
-            typeof val.propertyIsEnumerable !== 'undefined' &&
-            !val.propertyIsEnumerable('call')))) {
-
-            return true;
-
-        } else {
-            return false;
-        }
+    this.isFunction = function(val) {
+      return that.typeOf(val) == 'function';
     };
-    
-    
+
+    /**
+     * Returns true if the specified value is an object.  This includes arrays
+     * and functions.
+     * @param {*} val Variable to test.
+     * @return {boolean} Whether variable is an object.
+     * Borrowed from Google's Closure library: {@link http://code.google.com/p/closure/library}
+     */
+    this.isObject = function(val) {
+      var type = that.typeOf(val);
+      return type == 'object' || type == 'array' || type == 'function';
+    };
+
+    /**
+     * Returns true if the object looks like a Date. To qualify as Date-like
+     * the value needs to be an object and have a getFullYear() function.
+     * @param {*} val Variable to test.
+     * @return {boolean} Whether variable is a like a Date.
+     * Borrowed from Google's Closure library: {@link http://code.google.com/p/closure/library}
+     */
+    this.isDateLike = function(val) {
+      return that.isObject(val) && typeof val.getFullYear == 'function';
+    };
+
     /**
      * Copies all the members of a source object to a target object. WARNING:
      * This includes items that aren't 'own' items!
@@ -434,7 +529,7 @@ var BE = (function () {
      * <code>BE.log.error</code> can be used as short forms for the
      * functionality of this method.
      *
-     * @example 
+     * @example
      * BE.log.write(BE.log.types.DEBUG, 'This is a debug message');
      * @param {BE.log.types} type The <code>BE.log.type</code> to use for this
      * log message
@@ -592,7 +687,7 @@ var BE = (function () {
 	 * @see BE.log
 	 */
 	this.setDebugLevel = function (l) {
-		debug_ = l;	
+		debug_ = l;
 	};
 
     /**
@@ -603,7 +698,7 @@ var BE = (function () {
     this.getVersion = function () {
         return version_;
     };
-    
+
     /**
      * Alerts an Error Object, OR a String error, to the user. If the error
 	 * message is greater than a preset amount, the error is displayed in a

@@ -1,5 +1,5 @@
 /**
- * @fileoverview A unit testing suite for Extenscript.
+ * @fileoverview A unit testing suite for ExtendScript.
  * @author <a href="mailto:collin.brooks@gmail.com">Collin Brooks</a>
  * @version 0.1.0 dev
  */
@@ -297,13 +297,14 @@ var TB = (function () {
             } else if (type === "testResult") {
                 outcome = (d.result === true) ? "PASSED - " : "FAILED - ";
                 $.writeln(" > " + outcome + d.message);
+                if (d.result === false) {
+                    if(d.expected !== undefined) {
+                        $.writeln("\t EXPECTED: " + d.expected);
+                    }
 
-                if(d.expected !== undefined) {
-                    $.writeln("\t EXPECTED: " + d.expected);
-                }
-
-                if(d.actual !== undefined) {
-                    $.writeln("\t ACTUAL:   " + d.actual);
+                    if(d.actual !== undefined) {
+                        $.writeln("\t ACTUAL:   " + d.actual);
+                    }
                 }
             } else if (type === "summary") {
                 $.writeln("##### SUMMARY #####");
@@ -615,7 +616,7 @@ var TB = (function () {
 
     /**
      * Asserts true.
-     * @example ok( "asdfasdf".length > 5, "There must be at least 5 chars" );
+     * @example TB.ok( "asdfasdf".length > 5, "There must be at least 5 chars" );
      */
     this.ok = function (actual, message) {
         data.currentTest.processResult({
@@ -633,8 +634,7 @@ var TB = (function () {
      * NOTE: This method uses a relaxed comparison (==), for a more strict
      * comparison, see {@link TB.strictEqual}
 	 *
-     * @example TB.equal(format("Received {0} bytes.", 2), "Received 2
-     * bytes.");
+     * @example TB.equal("2", 2, "\"2\" is equal to 2");
 	 *
 	 * @param {Object} actual The actual value of the assertion.
 	 * @param {Object} expected The expected value of the assertion.
@@ -661,8 +661,7 @@ var TB = (function () {
      * NOTE: This method uses a relaxed comparison (==), for a more strict
      * comparison, see (@link TB.strictNotEqual}
      *
-     * @example TB.notEqual(format("Received {0} bytes.", 2), "Received 2
-     * bytes.");
+     * @example TB.notEqual("3", 2, "\"3\" is not equal to 2"); 
 	 *
 	 * @param {Object} actual The actual value of the assertion.
 	 * @param {Object} expected The expected value of the assertion.
@@ -689,8 +688,7 @@ var TB = (function () {
      * NOTE: This method uses a strict comparison (===), for a more relaxed
      * comparison, see {@link TB.equal}
 	 *
-     * @example TB.strictEqual(format("Received {0} bytes.", 2), "Received 2
-     * bytes.");
+     * @example TB.strictEqual(parseInt("04"), 4, "\"04\" parses to 4");
 	 *
 	 * @param {Object} actual The actual value of the assertion.
 	 * @param {Object} expected The expected value of the assertion.
@@ -740,22 +738,20 @@ var TB = (function () {
      * A deep recursive comparison assertion, working on primitive types,
      * arrays and objects. Similar to equal, compares the content given
      * objects. Its also more strict than equal: Comparisons are done using
-     * ===.  For a discussion of the concepts and reasons behind the
-     * implementation, see <a href="http://philrathe.com/articles/equiv">this
-     * article</a>.
+     * ===.
      *
-     * @param {Object} The object that is the actual resulting object of the
+     * @param {Object} actual The object that is the actual resulting object of the
      * assertion.
-     * @param {Object} The object that is the expected resulting object of the
-     * assertion.
+     * @param {Object} expected The object that is the expected resulting
+     * object of the assertion.
      * @param {String} message The message to display with the assertion.
      */
 	this.deepEqual = function (actual, expected, message) {
         data.currentTest.processResult(
             assertion(
                 equiv(actual, expected),
-                actual,
-                expected,
+                actual.toSource(),
+                expected.toSource(),
                 message
             )
         );
@@ -765,9 +761,7 @@ var TB = (function () {
      * A deep recursive comparison assertion, working on primitive types,
      * arrays and objects. Similar to notEqual, compares the content given
      * objects. Its also more strict than notEqual: Comparisons are done using
-     * ===.  For a discussion of the concepts and reasons behind the
-     * implementation, see <a href="http://philrathe.com/articles/equiv">this
-     * article</a>.
+     * ===.
      *
      * @param {Object} The object that is the actual resulting object of the
      * assertion.
@@ -779,8 +773,8 @@ var TB = (function () {
         data.currentTest.processResult(
             assertion(
                 !equiv(actual, expected),
-                actual,
-                expected,
+                actual.toSource(),
+                expected.toSource(),
                 message
             )
         );
@@ -845,10 +839,10 @@ var TB = (function () {
 
     /**
      * Asserts that a given object is defined.
-     * @param {*} test The value to test as being defined.
+     * @param {*} val The value to test as being defined.
      * @param {String} message The message to display with this assertion.
      */
-    this.defined = function (test, message) {
+    this.defined = function (val, message) {
         var r;
         if (test !== undefined) {
             r = {result: true, message: message};
