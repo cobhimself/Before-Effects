@@ -7,8 +7,6 @@
 
 BE.provide('BE.layer');
 
-BE.require('BE.log');
-
 /**
  *Contains layer helper methods that provide more functionality than the
  *original AE API.

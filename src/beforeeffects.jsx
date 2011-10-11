@@ -169,18 +169,21 @@ var BE = (function () {
         //Run the script that correlates with the provided name
         if (!dependencies_.included[name]) {
             //Evaluate the script
-            if (that.runScript(that.nameToPath(name))) {
+            try {
+                that.runScript(that.nameToPath(name));
+
                 //Mark the module as being included.
                 dependencies_.included[name] = true;
                 log.debug('Require of ' + name + ' successfull!');
 
                 //Our work is done here.
                 return;
-            } else {
+            } catch (e) {
                 //Mark the file as not visited so the user can check the error
                 //and retry.
                 dependencies_.visited[name] = false;
                 log.error('Error in requiring ' + name);
+                throw new Error('Error in requiring ' + name + ": " + e.message);
             }
 
         }
