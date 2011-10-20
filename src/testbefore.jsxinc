@@ -41,11 +41,10 @@ var TB = (function () {
 
     errors = {
         FAILED_TEST: function (testName, caughtError) {
-            return {
-                type: "FAILED_TEST",
-                testName: "testName",
-                e: caughtError
-            };
+            caughtError.type = "FAILED_TEST";
+            caughtError.testName = testName;
+
+            return caughtError;
         }
     };
 
@@ -413,7 +412,7 @@ var TB = (function () {
                     if (config.catchErrors) {
                         alert("ERROR:\n" +
                             "Module: " + this.name + "\n" +
-                            "Test: " + e.testname + "\n" +
+                            "Test: " + e.testName + "\n" +
                             e.message);
                     } else {
                         throw e;
@@ -497,7 +496,7 @@ var TB = (function () {
             } catch (e) {
                 if (config.catchErrors) {
                     //Throw the error for the Module to catch.
-                    throw error.FAILED_TEST(data.currentTest.name, e);
+                    throw errors.FAILED_TEST(data.currentTest.title, e);
                 } else {
                     throw e;
                 }

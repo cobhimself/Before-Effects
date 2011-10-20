@@ -513,7 +513,7 @@ var BE = (function () {
 	/**
 	 * Log message type contstants. Values:
      * <ul>
-     * <li>EXCEPTION</li>
+     * <li>ERROR</li>
      * <li>WARN</li>
      * <li>DEBUG</li>
      * </ul>
@@ -521,7 +521,7 @@ var BE = (function () {
      * @see BE.log
 	 */
 	this.log.types = {
-		EXCEPTION: "FATAL ERROR: ",
+		ERROR: "ERROR: ",
 		WARN: "WARNING: ",
         DEBUG: "INFO: "
 	};
@@ -532,6 +532,10 @@ var BE = (function () {
      * <code>BE.log.error</code> can be used as short forms for the
      * functionality of this method.
      *
+     * NOTE: BE.log.types.ERROR outputs an error message to the console but
+     * does not halt the execution of the script. You must thrown an exception
+     * yourself.
+     *
      * @example
      * BE.log.write(BE.log.types.DEBUG, 'This is a debug message');
      * @param {BE.log.types} type The <code>BE.log.type</code> to use for this
@@ -539,22 +543,24 @@ var BE = (function () {
      * @param {String} message The message to log
 	 */
     this.log.write = function (type, message) {
+        var m;
+
 		//Make sure the debug level is at least one greater than zero.
         if (debug_ > 0) {
+            m = type + message;
             switch (type) {
             case that.log.types.DEBUG:
                 if (debug_ >= 1) {
-                    $.writeln(type + message);
+                    $.writeln(m);
                 }
                 break;
             case that.log.types.WARN:
                 if (debug_ >= 2) {
-                    $.writeln(type + message);
+                    $.writeln(m);
                 }
                 break;
-            case that.log.types.EXCEPTION:
-                $.writeln(type + message);
-                that.alertError("" + type + message);
+            case that.log.types.ERROR:
+                $.writeln(m);
                 break;
             default:
                 $.writeln("INCORRECT ERROR TYPE SENT!");
@@ -584,7 +590,7 @@ var BE = (function () {
      * @param {Error} e The error to output.
      */
     this.log.error = function (e) {
-        that.log.write(that.log.types.EXCEPTION, e.toString());
+        that.log.write(that.log.types.ERROR, e.toString());
     };
 
 
@@ -598,13 +604,13 @@ var BE = (function () {
      *      myfilename.jsx
      *      <CURRENT DATE HERE>
      *      ----------------
-     * @param {String} s The name of the script to mention in the log start
+     * @param {String} h The header string to mention in the log start.
      * @returns Nothing.
      */
-    this.log.insertLogStart = function (s) {
+    this.log.insertLogStart = function (h) {
         var d = new Date(),
             m = "----------------\n" +
-               s + "\n" +
+               h + "\n" +
                d.toString() + "\n" +
                "----------------";
         $.writeln(m);
@@ -704,8 +710,12 @@ var BE = (function () {
 
     /**
      * Alerts an Error Object, OR a String error, to the user. If the error
-	 * message is greater than a preset amount, the error is displayed in a
-	 * scrollable window.
+     * message's length is greater than 100 character, the error is displayed
+     * in a scrollable window.
+     *
+     * NOTE: This method alerts an error to the user but does not
+     * halt the execution of the script. You must throw an error yourself to
+     * halt the execution of your script.
      *
      * @param {String|Error} e If the argument is a String, this variable will
      * be used to alert the string to the user. If it is an Error, the fields
@@ -752,7 +762,7 @@ var BE = (function () {
 		    alert(errString);
 		}
 
-		that.log.warn(errString);
+        that.log.error(errString);
     };
 
 	/*************************************************************************\
@@ -763,7 +773,7 @@ var BE = (function () {
      * Set of string error constants used by the global <code>BE</code> Object.
 	 * 
      * The errors represented within this Object are not Error Objects; they
-     * are description strings.
+     * are descriptive strings.
 	 * @namespace
      * @constant
      */

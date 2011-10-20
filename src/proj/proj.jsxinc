@@ -163,15 +163,18 @@ BE.proj.getActiveItem = function () {
 };
 
 /**
- *Get the project's active composition.
+ * Get the project's active composition.
  *
- *@return {Bool|Item} False if there is no active item or the currently
- *active item within the project is not a CompItem.
+ * @param {Project} [p] The project to get the active composition from. Useful
+ * if you already have the project object. If not specified, the current
+ * project is obtained.
+ * @return {Bool|Item} False if there is no active item or the currently active
+ * item within the project is not a CompItem.
  */
-BE.proj.getActiveComp = function () {
-	var p = BE.proj.getProject();
-	if (p !== false)
-	{
+BE.proj.getActiveComp = function (p) {
+	var p = p || BE.proj.getProject();
+
+	if (p !== false) {
 		return (p.activeItem === null ||
 				p.activeItem === undefined ||
 				!(p.activeItem instanceof CompItem)) ? false : p.activeItem;
@@ -206,17 +209,17 @@ BE.proj.getItemById = function (id) {
  *project object and activeItem respectively or False if proj and activeItem
  *are undefined.
  *@example
- *if (v = BE.proj.verifyProjAndActiveItem()) {
+ *if (v = BE.proj.getProjAndComp()) {
  *  proj = v[0];
  *  comp = v[1];
  *}
  */
-BE.proj.verifyProjAndActiveItem = function () {
+BE.proj.getProjAndComp = function () {
 	var proj = BE.proj,
         ERROR = BE.ERROR,
         p = proj.getProject(),
 		aItem = proj.getActiveComp();
-        
+
 	log.debug("Active Comp " + aItem.name);
 
 	if (!p && !aItem)
