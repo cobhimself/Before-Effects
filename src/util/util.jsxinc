@@ -1,14 +1,16 @@
 /**
-* @fileoverview The Before Effects util module. This module adds general util methods
-* that aid in working with After EFfects settings that would normall be accessed
-* through app.settings.
-* @author Collin D. Brooks <collin.brooks@gmail.com>
-* @version 0.1.0 dev
-*/
-
-BE.provide('BE.util.SettingsManager');
+ * @fileoverview The Before Effects util module. This module adds general util methods
+ * that aid in working with After EFfects settings that would normall be accessed
+ * through app.settings.
+ * @author Collin D. Brooks <collin.brooks@gmail.com>
+ * @version 0.1.0 dev
+ * @TODO: Reformat this module so BE.provide adds version number and
+ * definition.
+ */
 
 BE.require('BE.log');
+
+BE.provide('BE.util.SettingsManager');
 
 /**
  * Provides a way to easily store and retrieve settings that After Effects

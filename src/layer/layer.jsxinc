@@ -5,8 +5,6 @@
 * @version 0.1.0 dev
 */
 
-BE.provide('BE.layer');
-
 /**
  *Contains layer helper methods that provide more functionality than the
  *original AE API.
@@ -14,99 +12,100 @@ BE.provide('BE.layer');
  *@extends BE
  *@see BE
  */
-BE.layer = {
-    version: "0.1.0 dev"
-};
+BE.provide('BE.layer', "0.1.0 dev", function () {
+    /**
+     * Adds a marker with a comment to a specified layer at a specificed time.
+     * @param {Layer} l The layer to add the marker to.
+     * @param {String} time The time to add the marker
+     * @param {String|Int} txt The text to add as the marker's comment value
+     * @return {Layer} The layer that was sent. Useful for chaining.
+     */
+    this.addMarker = function (l, time, txt) {
+        l.property("Marker").setValueAtTime(time, new MarkerValue(txt));
+        return l;
+    };
 
-/**
- * Adds a marker with a comment to a specified layer at a specificed time.
- * @param {Layer} l The layer to add the marker to.
- * @param {String} time The time to add the marker
- * @param {String|Int} txt The text to add as the marker's comment value
- * @return {Layer} The layer that was sent. Useful for chaining.
- */
-BE.layer.addMarker = function (l, time, txt) {
-	l.property("Marker").setValueAtTime(time, new MarkerValue(txt));
-    return l;
-};
+    /**
+     * Deletes a marker on a layer at a specified index.
+     * @param {Layer} l The layer to delete the marker from
+     * @param {Int} index The index of the marker to delete
+     * @return {Layer} The layer that was sent. Useful for chaining.
+     */
+    this.deleteMarker = function (l, index) {
+        l.property("Marker").removeKey(index);
+        return l;
+    };
 
-/**
- * Deletes a marker on a layer at a specified index.
- * @param {Layer} l The layer to delete the marker from
- * @param {Int} index The index of the marker to delete
- * @return {Layer} The layer that was sent. Useful for chaining.
- */
-BE.layer.deleteMarker = function (l, index) {
-	l.property("Marker").removeKey(index);
-    return l;
-};
+    /**
+     * Get a marker's index based upon its comment value. Goes through each of
+     * the markers on the passed layer and returns its index.
+     * @param {Layer} l The layer to delete the marker from
+     * @param {String} markerText The text to search for in the comment property
+     * of the selected layer's marker's. Only exact matches return an index.
+     * @return {Bool|Int} False if 'markerText' does not match any comments
+     * within the 'l' layer's markers. The index if a match is found.
+     */
+    this.findMarkerIndex = function (l, markerText) {
+        var i;
 
-/**
- * Get a marker's index based upon its comment value. Goes through each of
- * the markers on the passed layer and returns its index.
- * @param {Layer} l The layer to delete the marker from
- * @param {String} markerText The text to search for in the comment property
- * of the selected layer's marker's. Only exact matches return an index.
- * @return {Bool|Int} False if 'markerText' does not match any comments
- * within the 'l' layer's markers. The index if a match is found.
- */
-BE.layer.findMarkerIndex = function (l, markerText) {
-	var i;
+        //Loop through the markers
+        for (i = l.property("Marker").numKeys; i >= 1; i -= 1)
+        {
+            //Does the current marker's comment equal the marker text?
+            if (l.property("Marker").keyValue(i).comment === markerText)
+            {
+                //Return the marker index
+                return i;
+            }
+        }
+        return false;
+    };
 
-	//Loop through the markers
-	for (i = l.property("Marker").numKeys; i >= 1; i -= 1)
-	{
-		//Does the current marker's comment equal the marker text?
-		if (l.property("Marker").keyValue(i).comment === markerText)
-		{
-			//Return the marker index
-			return i;
-		}
-	}
-	return false;
-};
+    /**
+     * Grabs the time of a marker based upon an index. The time is returned
+     * in the current user time format.
+     * @param {Layer} l The layer to search for the marker on.
+     * @param {Int} markerIndex The index of the marker whose time is to be
+     * returned.
+     * @returns {String} The time of the marker found at the given index in the
+     * current user time format.
+     */
+    this.getMarkerTime = function (l, markerIndex) {
+        var log = BE.log;
 
-/**
- * Grabs the time of a marker based upon an index. The time is returned
- * in the current user time format.
- * @param {Layer} l The layer to search for the marker on.
- * @param {Int} markerIndex The index of the marker whose time is to be
- * returned.
- * @returns {String} The time of the marker found at the given index in the
- * current user time format.
- */
-BE.layer.getMarkerTime = function (l, markerIndex) {
-    var log = BE.log;
+        log.debug("Layer: " + l.name + "; Marker Index: " + markerIndex);
+        log.debug("Actual time: " + l.property("Marker").keyTime(markerIndex));
+        log.debug("getMarkerTime returns " + timeToCurrentFormat(l.property("Marker").keyTime(markerIndex),
+                    l.containingComp.frameRate,
+                    true
+                    ));
 
-	log.debug("Layer: " + l.name + "; Marker Index: " + markerIndex);
-	log.debug("Actual time: " + l.property("Marker").keyTime(markerIndex));
-	log.debug("getMarkerTime returns " + timeToCurrentFormat(l.property("Marker").keyTime(markerIndex),
-				l.containingComp.frameRate,
-				true
-				));
+        return timeToCurrentFormat(l.property("Marker").keyTime(markerIndex),
+                l.containingComp.frameRate,
+                true
+                );
+    };
 
-	return timeToCurrentFormat(l.property("Marker").keyTime(markerIndex),
-			l.containingComp.frameRate,
-			true
-			);
-};
+    /**
+     *Returns the given layer's inPoint time value based upon the current
+     *time format within the project.
+     *@param {LayerItem} l The layer to get the inPoint time from.
+     *@returns
+     */
+    this.getLayerInPoint = function (l) {
+        return timeToCurrentFormat(l.inPoint, l.containingComp.frameRate);
+    };
 
-/**
- *Returns the given layer's inPoint time value based upon the current
- *time format within the project.
- *@param {LayerItem} l The layer to get the inPoint time from.
- *@returns
- */
-BE.layer.getLayerInPoint = function (l) {
-	return timeToCurrentFormat(l.inPoint, l.containingComp.frameRate);
-};
+    /**
+     *Returns the given layer's outPoint time value based upon the current
+     *time format within the project.
+     *@param {LayerItem} l The layer to get the outPoint time from.
+     *@returns
+     */
+    this.getLayerOutPoint = function (l) {
+        return timeToCurrentFormat(l.outPoint, l.containingComp.frameRate);
+    };
 
-/**
- *Returns the given layer's outPoint time value based upon the current
- *time format within the project.
- *@param {LayerItem} l The layer to get the outPoint time from.
- *@returns
- */
-BE.layer.getLayerOutPoint = function (l) {
-	return timeToCurrentFormat(l.outPoint, l.containingComp.frameRate);
-};
+    return this;
+});
+
