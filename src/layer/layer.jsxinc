@@ -23,10 +23,9 @@ BE.layer = {
  * @param {Layer} l The layer to add the marker to.
  * @param {String} time The time to add the marker
  * @param {String|Int} txt The text to add as the marker's comment value
- * @return {Layer} The layer that was sent. Useful for chainging.
+ * @return {Layer} The layer that was sent. Useful for chaining.
  */
-BE.layer.addMarker = function (l, time, txt)
-{
+BE.layer.addMarker = function (l, time, txt) {
 	l.property("Marker").setValueAtTime(time, new MarkerValue(txt));
     return l;
 };
@@ -35,10 +34,9 @@ BE.layer.addMarker = function (l, time, txt)
  * Deletes a marker on a layer at a specified index.
  * @param {Layer} l The layer to delete the marker from
  * @param {Int} index The index of the marker to delete
- * @return {Layer} The layer that was sent. Useful for chainging.
+ * @return {Layer} The layer that was sent. Useful for chaining.
  */
-BE.layer.deleteMarker = function (l, index)
-{
+BE.layer.deleteMarker = function (l, index) {
 	l.property("Marker").removeKey(index);
     return l;
 };
@@ -52,8 +50,7 @@ BE.layer.deleteMarker = function (l, index)
  * @return {Bool|Int} False if 'markerText' does not match any comments
  * within the 'l' layer's markers. The index if a match is found.
  */
-BE.layer.findMarkerIndex = function (l, markerText)
-{
+BE.layer.findMarkerIndex = function (l, markerText) {
 	var i;
 
 	//Loop through the markers
@@ -78,8 +75,7 @@ BE.layer.findMarkerIndex = function (l, markerText)
  * @returns {String} The time of the marker found at the given index in the
  * current user time format.
  */
-BE.layer.getMarkerTime = function (l, markerIndex)
-{
+BE.layer.getMarkerTime = function (l, markerIndex) {
     var log = BE.log;
 
 	log.debug("Layer: " + l.name + "; Marker Index: " + markerIndex);

@@ -192,8 +192,7 @@ BE.proj.getActiveComp = function (p) {
 BE.proj.getItemById = function (id) {
 	var items = BE.proj.getItemList(), i, max = items.length;
 
-	for(i = 1; i < max; i += 1)
-	{
+	for(i = 1; i < max; i += 1) {
 		if (items[i].id === id) {
 			return items[i];
 		}
@@ -218,16 +217,20 @@ BE.proj.getProjAndComp = function () {
 	var proj = BE.proj,
         ERROR = BE.ERROR,
         p = proj.getProject(),
-		aItem = proj.getActiveComp();
+		aComp = proj.getActiveComp();
 
-	log.debug("Active Comp " + aItem.name);
+	log.debug("Active Comp " + aComp.name);
 
-	if (!p && !aItem)
-	{
+	if (!p) {
 		log.debug(ERROR.NO_OPEN_PROJECT);
+        alert(ERROR.NO_OPEN_PROJECT);
 		return false;
-	} else {
-		return [p, aItem];
+	} else if (!aComp) {
+        log.debug(ERROR.NO_ACTIVE_COMP);
+        alert(ERROR.NO_ACTIVE_COMP);
+        return false;
+    } else {
+		return [p, aComp];
 	}
 };
 

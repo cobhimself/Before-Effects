@@ -87,7 +87,13 @@ var BE = (function () {
          * make sure a module does not define a resource more than once.
          * @type {String[]}
          */
-        included: []
+        included: [],
+        /**
+         * An array of version strings keyed by object notation. All modules
+         * must start with BE.
+         * @type {String[]}
+         */
+        versions: []
     },
 
     /**
@@ -123,6 +129,17 @@ var BE = (function () {
             parent = parent[parts[i]];
         }
         return parent;
+    },
+
+    /**
+     * Records the version of the given module.
+     * @param {String} name The name of the module, given in object notation
+     * and starting with "BE." to register.
+     * @param {String} version The version string for this module.
+     * @returns Nothing.
+     */
+    registerModule_ = function (name, version) {
+        dependencies_.versions[name] = version;
     };
 
     /*************************************************************************\
@@ -183,25 +200,94 @@ var BE = (function () {
                 //and retry.
                 dependencies_.visited[name] = false;
                 log.error('Error in requiring ' + name);
-                throw new Error('Error in requiring ' + name + ": " + e.message);
+                that.alertError(e);
+                throw new Error('FATAL ERROR: Error in requiring ' + name + ": " + e.message);
             }
 
         }
     };
 
+    /**
+     * Returns an object based on its fully qualified external name.
+     *
+     * @param {string} name The fully qualified name.
+     * @param {Object=} opt_obj The object within which to look; default is
+     *     |BE|.
+     * @return {?} The value (object or primitive) or, if not found, null.
+     */
+    this.getObjectByName = function(name, opt_obj) {
+      var parts = name.split('.');
+      var cur = opt_obj || that;
+
+      //Get rid of "BE" as a part if it's the first in the array.
+      if (parts[0] === "BE") {
+          parts.shift();
+      }
+
+      for (var part; part = parts.shift(); ) {
+        if (that.isDefAndNotNull(cur[part])) {
+          cur = cur[part];
+        } else {
+          return null;
+        }
+      }
+      return cur;
+    };
 
     /**
-     * Provides an object structure without overwriting already defined
+     * Sets an object based on its fully qualified external name.
+     *
+     * @param {string} name The fully qualified name.
+     * @return {?} The value (object or primitive) or, if not found, null.
+     */
+    this.setObjectByName = function(name, val) {
+        var parts = name.split('.'),
+            cur = that,
+            max,
+            part;
+
+        //Before the object can be defined, we need to make sure the path is
+        //defined.
+        exportPath_(name);
+
+        //Get rid of "BE" from the path.
+        parts.shift();
+
+        for ( i = 0; i < parts.length; i += 1) {
+          if (that.isDefAndNotNull(cur[part])) {
+            cur = cur[part];
+            if (i === parts.length - 1) {
+                cur[parts[i + 1]] = val;
+            }
+          } else {
+            return null;
+          }
+        }
+        return cur;
+    };
+
+    /**
+     * Provides an object for the BE namespace as well as registering its
+     * version number without overwriting already defined
      * namespaces, methods or properties.
      * @param {String} name The name of the object to define.
+     * @param {Function} module The module, provided as a function that, when
+     * ran will return the module to define.
      * @returns {Object} The last object in the path.
      * @example
      * <code>BE.provide("BE.my.long.object.path");</code>
      * same as:
      * <code>BE = { my: { long: { object: { path: {}}}}};</code>
      */
-    this.provide = function (name) {
-        return exportPath_(name);
+    this.provide = function (name, version, module) {
+        exportPath_(name);
+
+        //Run the module that was sent since it is provided as a function
+        module.call(that.getObjectByName(name));
+
+        $.bp();
+        //Register the module's version
+        registerModule_(name, version);
     };
 
     /**
@@ -218,16 +304,8 @@ var BE = (function () {
      * }
      */
     this.runScript = function (path) {
-        try {
-            $.evalFile(new File(that.BASE_PATH + "/" + path));
-
-            return true;
-        } catch (e) {
-            that.alertError("There was an error while evaluating the " +
-            "script at " + path + ".\n\nERROR:\n" + e);
-
-            return false;
-        }
+        $.evalFile(new File(that.BASE_PATH + "/" + path));
+        return true;
     };
 
     /**
@@ -733,6 +811,7 @@ var BE = (function () {
 		} else {
 			errString = e;
 		}
+        errString += "\n\nStack:\n" + $.stack;
 
 		if (errString.length > errStringMaxLength) {
 			eWindow = new Window("dialog",
@@ -799,7 +878,15 @@ var BE = (function () {
          * @type {String}
          */
         NO_ACTIVE_COMP : "The active composition within the " +
-            "project could not be found!"
+            "project could not be found!",
+
+        /**
+         * An error stating that a module attempting to be defined does not
+         * have a version property associated with it.
+         * @type {String}
+         */
+        NO_MODULE_VERSION: "Please make sure a version string is defined " +
+            "within all modules you are attempting to provide."
     };
 
     return this;

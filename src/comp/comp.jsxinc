@@ -5,12 +5,7 @@
 * @version 0.1.0 dev
 */
 
-BE.provide('BE.comp');
 BE.require('BE.prototypes');
-
-/******************************************************************\
- >>>>>>> COMP Helper
-\******************************************************************/
 
 /**
  *Contains composition helper methods that provide more functionality than
@@ -19,173 +14,175 @@ BE.require('BE.prototypes');
  *@extends BE
  *@see BE
  */
-BE.comp = {
-	version: "0.1.0 dev"
-};
+BE.provide('BE.comp', "0.1.0 dev", function () {
+    //Allow inner functions to access 'this'
+    var that = this;
+
+    /**
+     * Returns an array of the layer names within a given composition optionally
+     * filtering out certain types of layers.
+     * @param {CompItem} c The composition whose layer names are to be returned
+     * @param {String[]|String} [f] An array of strings, or a single string,
+     * representing the type of layer to be included in the returned array. If not
+     * set, nothing is filtered.
+     *
+     * Example: 'LightLayer', 'AVLayer', 'CameraLayer', 'ShapeLayer'
+     * @return {String[]} An array of the names of the layers within the comp.
+     */
+    this.getLayerNames = function (c, f) {
+        /*$.bp();*/
+        var i,
+            log = BE.log, //dependancy
+            names = [],
+            max = c.numLayers,
+            currentLayer,
+            noFilter,
+            r = /^\[object (.+)\]/;
+
+        //Is the filter a string? If so, create a new array with the string as the
+        //first item.
+        if(BE.isString(f)) {
+            f = [f];
+        }
+
+        log.debug("Getting Layer Names from comp: " + c.name);
+
+        noFilter = (f) ? false : true;
+
+        log.debug("Filter :" + ((noFilter) ? "undefined" : f.toSource()));
+
+        for (i = 1; i <= max; i += 1) {
+            currentLayer = c.layer(i);
+            log.debug("Current Layer: " + currentLayer.name);
+            if (!noFilter) {
+                log.debug("Adding " + currentLayer.name);
+                if ( f.inArray(r.exec(currentLayer.toString())[1], f)) {
+
+                    names.push(currentLayer.name);
+                }
+            } else {
+                log.debug("Adding " + currentLayer.name);
+                names.push(currentLayer.name);
+            }
+        }
+        return names;
+    };
 
 
-/**
- * Returns an array of the layer names within a given composition optionally
- * filtering out certain types of layers.
- * @param {CompItem} c The composition whose layer names are to be returned
- * @param {String[]|String} [f] An array of strings, or a single string,
- * representing the type of layer to be included in the returned array. If not
- * set, nothing is filtered.
- *
- * Example: 'LightLayer', 'AVLayer', 'CameraLayer', 'ShapeLayer'
- * @return {String[]} An array of the names of the layers within the comp.
- */
-BE.comp.getLayerNames = function (c, f) {
-    /*$.bp();*/
-	var i,
-        log = BE.log, //dependancy
-        names = [],
-        max = c.numLayers,
-        currentLayer,
-        noFilter,
-		r = /^\[object (.+)\]/;
+    /**
+     *Returns an Array of the layers within a given composition optionally
+     *filtering out certain types of layers.
+     *@param {CompItem} c The composition whose layers are to be returned
+     *@param {String[]} [f=[]] An array of strings representing the type of layer
+     *to be included in the returned array. If not set, nothing is filtered.
+     *
+     *Example: 'LightLayer', 'AVLayer', 'CameraLayer', 'ShapeLayer'
+     *@return {Layer[]} An array of the layers within the given comp.
+     */
+    this.getFilteredLayers = function (c, f) {
+        var log = BE.log, //dependency
+            i,
+            names = [],
+            currentLayer,
+            noFilter,
+            r = /^\[object\ (.+)\]/,
+            currentType;
 
-    //Is the filter a string? If so, create a new array with the string as the
-    //first item.
-    if(BE.isString(f)) {
-        f = [f];
-    }
+        //Is the filter a string? If so, create a new array with the string as the
+        //first item.
+        if(BE.isString(f)) {
+            f = [f];
+        }
 
-    log.debug("Getting Layer Names from comp: " + c.name);
+        log.debug("Getting filtered Layers...");
+        log.debug("Comp Name: " + c.name);
+        log.debug("Filter: " + f.toString());
 
-	noFilter = (f) ? false : true;
+        noFilter = (f) ? false : true;
 
-    log.debug("Filter :" + ((noFilter) ? "undefined" : f.toSource()));
-
-	for (i = 1; i <= max; i += 1) {
-		currentLayer = c.layer(i);
-        log.debug("Current Layer: " + currentLayer.name);
-		if (!noFilter) {
-            log.debug("Adding " + currentLayer.name);
-			if ( f.inArray(r.exec(currentLayer.toString())[1], f)) {
-
-				names.push(currentLayer.name);
-			}
-		} else {
-            log.debug("Adding " + currentLayer.name);
-			names.push(currentLayer.name);
-		}
-	}
-	return names;
-};
-
-
-/**
- *Returns an Array of the layers within a given composition optionally
- *filtering out certain types of layers.
- *@param {CompItem} c The composition whose layers are to be returned
- *@param {String[]} [f=[]] An array of strings representing the type of layer
- *to be included in the returned array. If not set, nothing is filtered.
- *
- *Example: 'LightLayer', 'AVLayer', 'CameraLayer', 'ShapeLayer'
- *@return {Layer[]} An array of the layers within the given comp.
- */
-BE.comp.getFilteredLayers = function (c, f) {
-	var log = BE.log, //dependency
-        i,
-        names = [],
-        currentLayer,
-        noFilter,
-		r = /^\[object\ (.+)\]/,
-        currentType;
-
-    //Is the filter a string? If so, create a new array with the string as the
-    //first item.
-    if(BE.isString(f)) {
-        f = [f];
-    }
-
-	log.debug("Getting filtered Layers...");
-	log.debug("Comp Name: " + c.name);
-	log.debug("Filter: " + f.toString());
-
-	noFilter = (f) ? false : true;
-
-	for (i = 1; i <= c.numLayers; i += 1) {
-		currentLayer = c.layer(i);
-		log.debug("Current Layer: " + currentLayer.name);
-		currentType = r.exec(currentLayer.toString())[1];
-		log.debug("Current type: " + currentType);
-		if (!noFilter && currentType) {
-			if (f.inArray(currentType, f)) {
-				log.debug("Adding " + currentLayer.name + " to list");
-				names.push(currentLayer.name);
-			}
-		} else {
-			names.push(currentLayer.name);
-		}
-	}
-	log.debug("Returning " + names.length + " layers");
-	return names;
-};
+        for (i = 1; i <= c.numLayers; i += 1) {
+            currentLayer = c.layer(i);
+            log.debug("Current Layer: " + currentLayer.name);
+            currentType = r.exec(currentLayer.toString())[1];
+            log.debug("Current type: " + currentType);
+            if (!noFilter && currentType) {
+                if (f.inArray(currentType, f)) {
+                    log.debug("Adding " + currentLayer.name + " to list");
+                    names.push(currentLayer.name);
+                }
+            } else {
+                names.push(currentLayer.name);
+            }
+        }
+        log.debug("Returning " + names.length + " layers");
+        return names;
+    };
 
 
-/**
- *Goes through each layer within the given comp and builds an array of
- *references to all the selected properties within the comp.
- *@param {CompItem} c The composition to search.
- *@returns {Object[]|Bool} False if no properties are selected, or an array
- *of object consisting of the following fields:
- *
- *parent: The CompItem that the layer with this property is contained in.
- *layer: The Layer that this property belongs to.
- *selectedProperties: An array of the properties that are selected in
- *this layer.
- */
-BE.comp.getAllSelectedProperties = function(c) {
+    /**
+     *Goes through each layer within the given comp and builds an array of
+     *references to all the selected properties within the comp.
+     *@param {CompItem} c The composition to search.
+     *@returns {Object[]|Bool} False if no properties are selected, or an array
+     *of object consisting of the following fields:
+     *
+     *parent: The CompItem that the layer with this property is contained in.
+     *layer: The Layer that this property belongs to.
+     *selectedProperties: An array of the properties that are selected in
+     *this layer.
+     */
+    this.getAllSelectedProperties = function(c) {
 
-	var log = BE.log,
-        currentLayer, i, props = [],
-		/**
-		 *An object that contains information about a layer and it's
-		 *selected properties.
-		 *
-		 *The Object is made up of the following fields:
-		 *<ul>
-		 *  <li><b>parent</b>: The layer's parent composition.</li>
-		 *  <li><b>layer</b>: A references to the actual layer</li>
-		 *  <li><b>selectedProperties</b>: An array of the selected properties
-		 *  from the layer.</li>
-		 *</ul>
-		 *@type {Object}
-		 */
-		theObj;
+        var log = BE.log,
+            currentLayer, i, props = [],
+            /**
+             *An object that contains information about a layer and it's
+             *selected properties.
+             *
+             *The Object is made up of the following fields:
+             *<ul>
+             *  <li><b>parent</b>: The layer's parent composition.</li>
+             *  <li><b>layer</b>: A references to the actual layer</li>
+             *  <li><b>selectedProperties</b>: An array of the selected properties
+             *  from the layer.</li>
+             *</ul>
+             *@type {Object}
+             */
+            theObj;
 
-	log.debug("Getting All Selected Properties...");
-	log.debug("Using Comp: " + c.name);
-	log.debug("Num Layers: " + c.numLayers);
+        log.debug("Getting All Selected Properties...");
+        log.debug("Using Comp: " + c.name);
+        log.debug("Num Layers: " + c.numLayers);
 
-	for (i = 1; i <= c.numLayers; i += 1) {
-		currentLayer = c.layer(i);
-		if (currentLayer.selectedProperties.length !== 0) {
+        for (i = 1; i <= c.numLayers; i += 1) {
+            currentLayer = c.layer(i);
+            if (currentLayer.selectedProperties.length !== 0) {
 
-			log.debug("Current Layer [" + i + "]: " + currentLayer.name);
-			log.debug("Props.length: " + props.length);
+                log.debug("Current Layer [" + i + "]: " + currentLayer.name);
+                log.debug("Props.length: " + props.length);
 
-			theObj = {
-				"parent": c,
-				"layer": currentLayer,
-				"selectedProperties": currentLayer.selectedProperties
-			};
+                theObj = {
+                    "parent": c,
+                    "layer": currentLayer,
+                    "selectedProperties": currentLayer.selectedProperties
+                };
 
-			log.debug("Selected Properties: " + currentLayer.selectedProperties.length);
+                log.debug("Selected Properties: " + currentLayer.selectedProperties.length);
 
-			props.push(theObj);
+                props.push(theObj);
 
-			log.debug("Props.length updated: " + props.length);
-		}
-	}
+                log.debug("Props.length updated: " + props.length);
+            }
+        }
 
-	if (props.length !== 0) {
-		log.debug("Returning props array");
-		return props;
-	} else {
-		log.debug("Returning False");
-		return false;
-	}
-};
+        if (props.length !== 0) {
+            log.debug("Returning props array");
+            return props;
+        } else {
+            log.debug("Returning False");
+            return false;
+        }
+    };
+
+    return this;
+});
