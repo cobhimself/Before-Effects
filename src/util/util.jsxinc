@@ -4,72 +4,68 @@
  * through app.settings.
  * @author Collin D. Brooks <collin.brooks@gmail.com>
  * @version 0.1.0 dev
- * @TODO: Reformat this module so BE.provide adds version number and
- * definition.
  */
 
 BE.require('BE.log');
 
-BE.provide('BE.util.SettingsManager');
-
-/**
- * Provides a way to easily store and retrieve settings that After Effects
- * should save. Settings are automatically saved on <code>set</code> and loaded
- * on <code>get</code>.
- * @example
- *   var settingsManager = BE.util.SettingsManager("My Script Name",
- *       {
- *           "settingOne": "Setting One Value",
- *           "settingTwo": "Setting Two Value"
- *       }
- *   );
- *   settingsManager.get("settingOne");  //"Setting One Value"
- *   settingsManager.set("settingOne", "New Setting One Value");
- *   settingsManager.get("settingOne");  //"New Setting One Value");
- * 
- * @param {String} sectionName The name that After Effects should use as this
- * group of setting's sectionName. This can be the name of your script.
- * @param {Object} settings An Object filled with key/value pairs to be saved
- * within After Effect's settings. If this argument is not provided, settings
- * will need to be added by using the <code>add<code> method.
- * @returns {SettingsManager} A BE.util.SettingsManager.
- * @constructor
- */
-
-BE.util.SettingsManager = function (sectionName, settings) {
-
-    var that = this,
-        log = BE.log,
-        errors = {
-            NO_SETTINGS: "There are no settings associated with " +
-                "this Settings Manager",
-            SETTING_DOES_NOT_EXIST: "Setting does not exist!" 
-        },
-
-        version = "0.1.0 dev";
-
-    log.debug("Initializing Settings Manager...");
-    log.debug("sectionName = " + sectionName);
-    log.debug("settings = " + settings.toString());
+BE.provide('BE.util', "0.1.0 dev", function () {
+    var that = this;
 
     /**
-     * The name for After Effects to use as this group of settings' section
-     * name.
-     * @type {String}
-     */
-    this.sectionName = sectionName;
-
-    log.debug("this.sectionName = " + this.sectionName);
-
-    /**
-     * The settings Object that contains the settings to be managed by this
-     * SettingsManager.
+     * Provides a way to easily store and retrieve settings that After Effects
+     * should save. Settings are automatically saved on <code>set</code> and loaded
+     * on <code>get</code>.
+     * @example
+     *   var settingsManager = BE.util.SettingsManager("My Script Name",
+     *       {
+     *           "settingOne": "Setting One Value",
+     *           "settingTwo": "Setting Two Value"
+     *       }
+     *   );
+     *   settingsManager.get("settingOne");  //"Setting One Value"
+     *   settingsManager.set("settingOne", "New Setting One Value");
+     *   settingsManager.get("settingOne");  //"New Setting One Value");
      * 
-     * @type {Object}
+     * @param {String} sectionName The name that After Effects should use as this
+     * group of setting's sectionName. This can be the name of your script but
+     * should be unique to your script.
+     * @param {Object} settings An Object filled with key/value pairs to be saved
+     * within After Effect's settings. If this argument is not provided, settings
+     * will need to be added by using the <code>add<code> method.
+     * @returns {SettingsManager} A BE.util.SettingsManager.
+     * @constructor
      */
-    this.settings = (settings) ? settings : {};
+    this.SettingsManager = function (sectionName, settings) {
+        var log = BE.log,
+            errors = {
+                NO_SETTINGS: "There are no settings associated with " +
+                    "this Settings Manager",
+                SETTING_DOES_NOT_EXIST: "Setting does not exist!"
+            };
 
-    log.debug("this.settings = " + this.settings);
+        log.debug("Initializing Settings Manager...");
+        log.debug("sectionName = " + sectionName);
+        log.debug("settings = " + settings.toString());
+
+        /**
+         * The name for After Effects to use as this group of settings' section
+         * name.
+         * @type {String}
+         */
+        this.sectionName = sectionName;
+
+        log.debug("this.sectionName = " + this.sectionName);
+
+        /**
+         * The settings Object that contains the settings to be managed by this
+         * SettingsManager.
+         * 
+         * @type {Object}
+         */
+        this.settings = (settings) ? settings : {};
+
+        log.debug("this.settings = " + this.settings);
+    };
 
     /**
      * Checks to see if a given setting exists within this SettingsManager.
@@ -78,8 +74,8 @@ BE.util.SettingsManager = function (sectionName, settings) {
      * existence.
      * @returns {Bool} True if a given setting exists or false if it doesn't.
      */
-    this.settingExists = function (settingName) {
-        return (that.settings[settingName]) ? true : false;
+    this.SettingsManager.prototype.settingExists = function (settingName) {
+        return (this.settings[settingName]) ? true : false;
     };
 
     /**
@@ -89,8 +85,8 @@ BE.util.SettingsManager = function (sectionName, settings) {
      * @returns {Bool} True if there aren't any settings associated with this
      * SettingsManager or false if there is at least one.
      */
-    this.noSettings = function () {
-        return (that.settings.length === 0) ? true : false;
+    this.SettingsManager.prototype.noSettings = function () {
+        return (this.settings.length === 0) ? true : false;
     };
 
     /**
@@ -100,17 +96,15 @@ BE.util.SettingsManager = function (sectionName, settings) {
      * 
      * @returns {SettingsManager} The SettingsManager. Useful for chaining.
      */
-    this.saveAll = function () {
-        if (!that.noSettings())
-        {
+    this.SettingsManager.prototype.saveAll = function () {
+        if (!this.noSettings()) {
             var settingName;
-            
-            for (settingName in that.settings)
-            {
-                that.save(settingName);
+
+            for (settingName in this.settings) {
+                this.save(settingName);
             }
         }
-        return that;
+        return this;
     };
 
     /**
@@ -121,16 +115,15 @@ BE.util.SettingsManager = function (sectionName, settings) {
      * @throws errors.SETTING_DOES_NOT_EXIST
      * @returns {SettingsManager} The SettingsManager. Useful for chaining.
      */
-    this.save = function (settingName) {
-        if (that.settingExists(settingName))
-        {
-            app.settings.saveSetting(that.sectionName, settingName,
-                that.settings[settingName]);
+    this.SettingsManager.prototype.save = function (settingName) {
+        if (this.settingExists(settingName)) {
+            app.settings.saveSetting(this.sectionName, settingName,
+                this.settings[settingName]);
         } else {
             throw(errors.SETTING_DOES_NOT_EXIST + " Cannot save setting " +
             "\"" + settingName + "\" because it does not exist.");
         }
-        return that;
+        return this;
     };
 
     /**
@@ -141,16 +134,16 @@ BE.util.SettingsManager = function (sectionName, settings) {
      * @throws errors.SETTING_DOES_NOT_EXIST
      * @returns {SettingsManager} The SettingsManager. Useful for chaining.
      */
-    this.load = function (settingName) {
-        if (that.settingExists(settingName))
+    this.SettingsManager.prototype.load = function (settingName) {
+        if (this.settingExists(settingName))
         {
-            that.settings[settingName] =
-                app.settings.getSetting(that.sectionName, settingName);
+            this.settings[settingName] =
+                app.settings.getSetting(this.sectionName, settingName);
         } else {
             throw(errors.SETTING_DOES_NOT_EXIST + " Cannot load setting " +
                 "\"" + settingName + "\" because it does not exist.");
         }
-        return that;
+        return this;
     };
 
     /**
@@ -160,19 +153,17 @@ BE.util.SettingsManager = function (sectionName, settings) {
      * @throws errors.NO_SETTINGS
      * @returns {SettingsManager} The SettingsManager. Useful for chaining.
      */
-    this.loadAll = function () {
-        if (that.settings.length === 0)
-        {
+    this.SettingsManager.prototype.loadAll = function () {
+        var settingName;
+
+        if (this.settings.length === 0) {
             throw("Cannot load all settings because " + errors.NO_SETTINGS);
         }
 
-        var settingName;
-        
-        for (settingName in that.settings)
-        {
-            that.save(settingName);
+        for (settingName in this.settings) {
+            this.save(settingName);
         }
-        return that;
+        return this;
     };
 
     /**
@@ -183,11 +174,10 @@ BE.util.SettingsManager = function (sectionName, settings) {
      * @throws errors.SETTING_DOES_NOT_EXIST
      * @returns {String} The value of the given setting.
      */
-    this.get = function (settingName) {
-        if (that.settingExists(settingName))
-        {
-            that.load(settingName);
-            return that.settings[settingName];
+    this.SettingsManager.prototype.get = function (settingName) {
+        if (this.settingExists(settingName)) {
+            this.load(settingName);
+            return this.settings[settingName];
         } else {
             throw(errors.SETTING_DOES_NOT_EXIST + " Cannot get setting " +
                 "\"" + settingName + "\" because it does not exist.");
@@ -199,12 +189,15 @@ BE.util.SettingsManager = function (sectionName, settings) {
      * 
      * @returns {SettingsManager} The SettingsManager. Useful for chaining.
      */
-    this.set = function (settingName, settingValue) {
-        that.settings[settingName] = settingValue;
-        that.save(settingName);
-        return that;
+    this.SettingsManager.prototype.set = function (settingName, settingValue) {
+        this.settings[settingName] = settingValue;
+        this.save(settingName);
+        return this;
     };
 
     log.debug("Returning SettingsManager Version: " + this.version);
+
+    //Return the util module's object
     return this;
-};
+
+});
