@@ -34,7 +34,10 @@ var TB = (function () {
     data.currentTest = null;
     data.previousModule = null;
 
-    config.catchErrors = false;
+    config = {
+        catchErrors: false,
+        failedOnly: true
+    };
 
 // Private Methods:
 //----------------------------------------------------------------------------
@@ -283,7 +286,8 @@ var TB = (function () {
          * @memberOf formatter
          */
         output: function (type, d) {
-            var outcome;
+            var outcome,
+                showResult = true;
             if (type === "moduleHeader") {
                 $.writeln(d.moduleName + " " +
                     "(" + this.pluralize(d.numTests, "test", "s") + ")");
@@ -307,15 +311,22 @@ var TB = (function () {
                     "PASSED: " + d.passed + ", " +
                     "FAILED: " + d.failed + "\n");
             } else if (type === "testResult") {
-                outcome = (d.result === true) ? "PASSED - " : "FAILED - ";
-                $.writeln(" > " + outcome + d.message);
-                if (d.result === false) {
-                    if(d.expected !== undefined) {
-                        $.writeln("\t EXPECTED: " + d.expected);
-                    }
+                //Do we only want to output the failed results?
+                if (d.result === true && config.failedOnly) {
+                    showResult = false;
+                }
 
-                    if(d.actual !== undefined) {
-                        $.writeln("\t ACTUAL:   " + d.actual);
+                if (showResult) {
+                    outcome = (d.result === true) ? "PASSED - " : "FAILED - ";
+                    $.writeln(" > " + outcome + d.message);
+                    if (d.result === false) {
+                        if(d.expected !== undefined) {
+                            $.writeln("\t EXPECTED: " + d.expected);
+                        }
+
+                        if(d.actual !== undefined) {
+                            $.writeln("\t ACTUAL:   " + d.actual);
+                        }
                     }
                 }
             } else if (type === "summary") {
@@ -372,51 +383,55 @@ var TB = (function () {
 
             max = this.tests.length;
 
+            function runTest(currTest, module) {
+                r = currTest.run();
+
+                //Output the test header.
+                formatter.output("testHeader", {
+                    testName: currTest.title,
+                    numAssertions: currTest.numAssertions
+                });
+
+                //In order to calculate the number of assertions within a test,
+                //the output of the results needed to be delayed. Go through
+                //the results array and output the test results one by one.
+                numAssertions = currTest.numAssertions;
+
+                for (j = 0; j < numAssertions; j += 1) {
+                    testResult = currTest.results[j];
+                    module.processResult(testResult);
+                    formatter.output ("testResult", {
+                        result: testResult.result,
+                        message: testResult.message,
+                        expected: testResult.expected,
+                        actual: testResult.actual
+                    });
+                }
+
+                //Output the test footer
+                formatter.output("testFooter", {
+                    testName: currTest.title,
+                    passed: currTest.passed,
+                    failed: currTest.failed
+                });
+            }
+
             for (i = 0; i < max; i += 1) {
                 totalTests += 1;
                 currTest = this.tests[i];
 
-                //Run the test.
-                try {
-                    r = currTest.run();
-
-                    //Output the test header.
-                    formatter.output("testHeader", {
-                        testName: currTest.title,
-                        numAssertions: currTest.numAssertions
-                    });
-
-                    //In order to calculate the number of assertions within a test,
-                    //the output of the results needed to be delayed. Go through
-                    //the results array and output the test results one by one.
-                    numAssertions = currTest.numAssertions;
-
-                    for (j = 0; j < numAssertions; j += 1) {
-                        testResult = currTest.results[j];
-                        this.processResult(testResult);
-                        formatter.output ("testResult", {
-                            result: testResult.result,
-                            message: testResult.message,
-                            expected: testResult.expected,
-                            actual: testResult.actual
-                        });
-                    }
-
-                    //Output the test footer
-                    formatter.output("testFooter", {
-                        testName: currTest.title,
-                        passed: currTest.passed,
-                        failed: currTest.failed
-                    });
-                } catch (e) {
-                    if (config.catchErrors) {
+                //Run the test and catch the errors if the config says to.
+                if (config.catchErrors) {
+                    try {
+                        runTest(currTest, this);
+                    } catch (e) {
                         alert("ERROR:\n" +
                             "Module: " + this.name + "\n" +
                             "Test: " + e.testName + "\n" +
                             e.message);
-                    } else {
-                        throw e;
                     }
+                } else {
+                    runTest(currTest, this);
                 }
 
                 //Update the pass/fail numbers and store the result
@@ -490,17 +505,18 @@ var TB = (function () {
         run: function () {
             data.currentTest = this;
 
-            try {
-                //Run the function associated with this test.
-                this.callback();
-            } catch (e) {
-                if (config.catchErrors) {
+            if (config.catchErrors) {
+                try {
+                    //Run the function associated with this test.
+                    this.callback();
+                } catch (e) {
                     //Throw the error for the Module to catch.
                     throw errors.FAILED_TEST(data.currentTest.title, e);
-                } else {
-                    throw e;
-                }
-            };
+                };
+            } else {
+                //Run the function associated with this test.
+                this.callback();
+            }
         },
         /**
          * Processes a result from a test and updates the total passed/failed
@@ -531,13 +547,14 @@ var TB = (function () {
 //----------------------------------------------------------------------------
 
     /**
-     * Whether or not TB should catch errors.
-     * @param {Bool} b If true, errors are caught by the TB object; if false,
-     * errors are caught by ExtendScript Toolkit.
+     * Set certain settings for TB to use when running the tests.
+     * @param {Object} s The settings given in name/value pairs.
      * @returns Nothing.
      */
-    this.setCatchErrors = function (b) {
-        config.catchErrors = b;
+    this.configure = function (s) {
+        for (x in s) {
+            config[x] = s[x];
+        }
     };
 
     /**

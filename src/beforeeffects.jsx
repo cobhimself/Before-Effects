@@ -285,7 +285,6 @@ var BE = (function () {
         //Run the module that was sent since it is provided as a function
         module.call(that.getObjectByName(name));
 
-        $.bp();
         //Register the module's version
         registerModule_(name, version);
     };
