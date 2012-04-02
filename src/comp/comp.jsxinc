@@ -126,7 +126,6 @@ BE.provide('BE.comp', "0.1.0 dev", function () {
      *@returns {Object[]|Bool} False if no properties are selected, or an array
      *of object consisting of the following fields:
      *
-     *parent: The CompItem that the layer with this property is contained in.
      *layer: The Layer that this property belongs to.
      *selectedProperties: An array of the properties that are selected in
      *this layer.
@@ -141,7 +140,6 @@ BE.provide('BE.comp', "0.1.0 dev", function () {
              *
              *The Object is made up of the following fields:
              *<ul>
-             *  <li><b>parent</b>: The layer's parent composition.</li>
              *  <li><b>layer</b>: A references to the actual layer</li>
              *  <li><b>selectedProperties</b>: An array of the selected properties
              *  from the layer.</li>
@@ -162,7 +160,6 @@ BE.provide('BE.comp', "0.1.0 dev", function () {
                 log.debug("Props.length: " + props.length);
 
                 theObj = {
-                    "parent": c,
                     "layer": currentLayer,
                     "selectedProperties": currentLayer.selectedProperties
                 };
