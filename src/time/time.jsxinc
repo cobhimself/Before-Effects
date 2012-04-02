@@ -14,5 +14,55 @@
  */
 BE.provide('BE.time', "0.1.0 dev", function () {
 
+    /**
+     * A pointer to BE.time.
+     */
+    var that = this;
+
+    /**
+     * Grabs the time in seconds while maintaining the user's current timecode
+     * settings.
+     * @param {Comp} c The composition to get the current time in seconds from.
+     * @returns {Float|Int} The time in seconds.
+     */
+    this.getTimeInSeconds = function (c) {
+        return that.withTimecodeRemembered(TimeDisplayType.SECONDS,
+            function () {
+                return timeToCurrentFormat(c.time, c.frameRate, true);
+            });
+    };
+
+    /**
+     * Grabs the time in frames while maintaining the user's current timecode
+     * settings.
+     * @param {Comp} c The composition to get the current time in frames from.
+     * @returns {String|Int} The time in seconds.
+     */
+    this.getTimeInFrames = function (c) {
+        return that.withTimecodeRemembered(TimeDisplayType.FRAMES,
+            function () {
+                return timeToCurrentFormat(c.time, c.frameRate, true);
+            });
+    };
+
+    /**
+     * Runs a provided function after setting the timecode display type to the
+     * provided setting; it then resets the user's timecode display type to
+     * what it was originally set at.
+     * @param {TimeDisplayType} t The TimeDisplayType enum to use.
+     * @param {Function} f The function to run.
+     * @returns The value returned by the provided function.
+     */
+    this.withTimecodeRemembered = function (t, f) {
+        var userTime = app.project.timeDisplayType,
+            toReturn;
+
+        app.project.timeDisplayType = t;
+        toReturn = f();
+        app.project.timeDisplayType = userTime;
+
+        return toReturn;
+    };
+
     return this;
 });
