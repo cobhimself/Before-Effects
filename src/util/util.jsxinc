@@ -5,11 +5,9 @@
  * @author Collin D. Brooks <collin.brooks@gmail.com>
  * @version 0.1.0 dev
  */
-
-BE.require('BE.log');
-
 BE.provide('BE.util', "0.1.0 dev", function () {
-    var that = this;
+    var that = this,
+        log = BE.log;
 
     /**
      * Provides a way to easily store and retrieve settings that After Effects
@@ -36,12 +34,12 @@ BE.provide('BE.util', "0.1.0 dev", function () {
      * @constructor
      */
     this.SettingsManager = function (sectionName, settings) {
-        var log = BE.log,
-            errors = {
-                NO_SETTINGS: "There are no settings associated with " +
-                    "this Settings Manager",
-                SETTING_DOES_NOT_EXIST: "Setting does not exist!"
-            };
+
+        this.errors = {
+            NO_SETTINGS: "There are no settings associated with " +
+                "this Settings Manager",
+            SETTING_DOES_NOT_EXIST: "Setting does not exist!"
+        };
 
         log.debug("Initializing Settings Manager...");
         log.debug("sectionName = " + sectionName);
@@ -64,7 +62,12 @@ BE.provide('BE.util', "0.1.0 dev", function () {
          */
         this.settings = (settings) ? settings : {};
 
-        log.debug("this.settings = " + this.settings);
+        log.debug("this.settings = " + this.settings.toSource());
+
+        //Save all of the settings
+        this.saveAll();
+
+        return this;
     };
 
     /**
@@ -112,7 +115,7 @@ BE.provide('BE.util', "0.1.0 dev", function () {
      * 
      * @param {String} [settingName] The setting to save or, if undefined,
      * save all settings.
-     * @throws errors.SETTING_DOES_NOT_EXIST
+     * @throws SettingsManager.errors.SETTING_DOES_NOT_EXIST
      * @returns {SettingsManager} The SettingsManager. Useful for chaining.
      */
     this.SettingsManager.prototype.save = function (settingName) {
@@ -120,7 +123,7 @@ BE.provide('BE.util', "0.1.0 dev", function () {
             app.settings.saveSetting(this.sectionName, settingName,
                 this.settings[settingName]);
         } else {
-            throw(errors.SETTING_DOES_NOT_EXIST + " Cannot save setting " +
+            throw(this.errors.SETTING_DOES_NOT_EXIST + " Cannot save setting " +
             "\"" + settingName + "\" because it does not exist.");
         }
         return this;
@@ -131,7 +134,7 @@ BE.provide('BE.util', "0.1.0 dev", function () {
      * exist.
      * 
      * @param {String} settingName The name of the setting to load.
-     * @throws errors.SETTING_DOES_NOT_EXIST
+     * @throws SettingsManager.errors.SETTING_DOES_NOT_EXIST
      * @returns {SettingsManager} The SettingsManager. Useful for chaining.
      */
     this.SettingsManager.prototype.load = function (settingName) {
@@ -150,7 +153,7 @@ BE.provide('BE.util', "0.1.0 dev", function () {
      * Loads all of the settings being managed by this SettingsManager. It is an
      * error if no settings have been registered with this SettingsManager.
      * 
-     * @throws errors.NO_SETTINGS
+     * @throws SettingsManager.errors.NO_SETTINGS
      * @returns {SettingsManager} The SettingsManager. Useful for chaining.
      */
     this.SettingsManager.prototype.loadAll = function () {

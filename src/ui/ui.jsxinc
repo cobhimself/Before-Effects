@@ -5,8 +5,6 @@
 * @version 0.1.0 dev
 */
 
-BE.require('BE.log');
-
 /**
  * Contains User Interface Helper methods that allow for easier creation
  * and debugging of UI.
