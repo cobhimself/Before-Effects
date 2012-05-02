@@ -16,11 +16,13 @@ BE.provide('BE.layer', "0.1.0 dev", function () {
     /**
      * Adds a marker with a comment to a specified layer at a specificed time.
      * @param {Layer} l The layer to add the marker to.
-     * @param {String} time The time to add the marker
+     * @param {String} time The time, in seconds, to add the marker
      * @param {String|Int} txt The text to add as the marker's comment value
      * @return {Layer} The layer that was sent. Useful for chaining.
      */
     this.addMarker = function (l, time, txt) {
+        var log = BE.log;
+        log.debug("addMarker(" + l.name + ", " + time + ", " + txt + ")");
         l.property("Marker").setValueAtTime(time, new MarkerValue(txt));
         return l;
     };
@@ -42,18 +44,18 @@ BE.provide('BE.layer', "0.1.0 dev", function () {
      * @param {Layer} l The layer to delete the marker from
      * @param {String} markerText The text to search for in the comment property
      * of the selected layer's marker's. Only exact matches return an index.
-     * @return {Bool|Int} False if 'markerText' does not match any comments
-     * within the 'l' layer's markers. The index if a match is found.
+     * @return {Bool|Int} The index if a match is found or false if
+     * 'markerText' does not match any comments within the 'l' layer's markers. 
      */
     this.findMarkerIndex = function (l, markerText) {
-        var i;
+        var i, log = BE.log;
+        log.debug("findMarkerIndex(" + l.name + ", " + markerText + ")");
 
         //Loop through the markers
-        for (i = l.property("Marker").numKeys; i >= 1; i -= 1)
-        {
+        for (i = l.property("Marker").numKeys; i >= 1; i -= 1) {
             //Does the current marker's comment equal the marker text?
-            if (l.property("Marker").keyValue(i).comment === markerText)
-            {
+            log.debug("Current Marker Text: " + l.property("Marker").keyValue(i).comment + "; Search: " + markerText);
+            if (l.property("Marker").keyValue(i).comment === markerText) {
                 //Return the marker index
                 return i;
             }
