@@ -45,6 +45,23 @@ var BE = (function () {
     var that = this,
 
     /**
+     * Contains name/value pairs for where modules are included from relative
+     * to {@link BE.BASE_PATH}.
+     * @type {Object}
+     * @private
+     * @inner
+     */
+    incs = {
+        comp: "comp/comp.jsxinc",
+        layer: "layer/layer.jsxinc",
+        proj: "proj/proj.jsxinc",
+        prototypes: "prototyptes/prototypes.jsxinc",
+        time: "time/time.jsxinc",
+        ui: "ui/ui.jsxinc",
+        settingsmanager: "util/SettingsManager.jsxinc"
+    },
+
+    /**
      * The current version of the <code>BE</code> object.
 	 *
 	 * @type {String}
@@ -152,6 +169,12 @@ var BE = (function () {
      * @type {String}
      */
     this.BASE_PATH = new Folder(new File($.fileName).parent.fsName).fsName;
+
+    /**
+     * The current version of After Effects already converted into a float.
+     * @type {Float}
+     */
+    this.AEVersion = parseFloat(app.version);
 
 
 	/*************************************************************************\
