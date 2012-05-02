@@ -17,7 +17,36 @@ BE.provide('BE.time', "0.1.0 dev", function () {
     /**
      * A pointer to BE.time.
      */
-    var that = this;
+    var that = this,
+        /**
+         * Gets the current Timecode Display Type based upon whether or not the
+         * user's After Effects version is less than CS5.5 since the
+         * timecodeDisplayType property of the project object was changed to
+         * timeDisplayType in CS5.5.
+         * @return {TimecodeDisplayType|TimeDisplayType}
+         * TODO
+         */
+        getTimeDisplayType = function () {
+            if (BE.AEVersion < 10.5) {
+                return app.project.timecodeDisplayType;
+            } else {
+                return app.project.timeDisplayType;
+            }
+        };
+
+    //The display type enum is different starting with CS5.5. We'll use an
+    //internal enum that is set based upon the current AE version.
+    if (BE.AEVersion < 10.5) {
+        this.TimeDisplayType = {
+            FRAMES: TimecodeDisplayType.FRAMES,
+            TIMECODE: TimecodeDisplayType.TIMECODE
+        };
+    } else {
+        this.TimeDisplayType = {
+            FRAMES: TimeDisplayType.Frames,
+            TIMECODE: TimeDisplayType.TIMECODE
+        };
+    }
 
     /**
      * Grabs the time in seconds while maintaining the user's current timecode
@@ -26,7 +55,7 @@ BE.provide('BE.time', "0.1.0 dev", function () {
      * @returns {Float|Int} The time in seconds.
      */
     this.getTimeInSeconds = function (c) {
-        return that.withTimecodeRemembered(TimeDisplayType.SECONDS,
+        return that.withTimecodeRemembered(that.TimeDisplayType.SECONDS,
             function () {
                 return timeToCurrentFormat(c.time, c.frameRate, true);
             });
@@ -39,7 +68,7 @@ BE.provide('BE.time', "0.1.0 dev", function () {
      * @returns {String|Int} The time in seconds.
      */
     this.getTimeInFrames = function (c) {
-        return that.withTimecodeRemembered(TimeDisplayType.FRAMES,
+        return that.withTimecodeRemembered(that.TimeDisplayType.FRAMES,
             function () {
                 return timeToCurrentFormat(c.time, c.frameRate, true);
             });
@@ -54,7 +83,7 @@ BE.provide('BE.time', "0.1.0 dev", function () {
      * @returns The value returned by the provided function.
      */
     this.withTimecodeRemembered = function (t, f) {
-        var userTime = app.project.timeDisplayType,
+        var userTime = getTimeDisplayType(),
             toReturn;
 
         app.project.timeDisplayType = t;
