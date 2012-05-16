@@ -19,20 +19,70 @@ BE.provide('BE.time', "0.1.0 dev", function () {
      */
     var that = this,
         /**
-         * Gets the current Timecode Display Type based upon whether or not the
-         * user's After Effects version is less than CS5.5 since the
-         * timecodeDisplayType property of the project object was changed to
-         * timeDisplayType in CS5.5.
-         * @return {TimecodeDisplayType|TimeDisplayType}
+         * Helper function that returns the TimecodeDisplayType or
+         * TimeDisplayType enum regardless of AE version.
+         * @returns {TimecodeDisplayType|TimeDisplayType} A pointer to either
+         * TimecodeDisplayType or TimeDisplayType depending on the user's AE
+         * version. Useful for accessing the current display type without
+         * having to check for AE version.
+         */
+        getTCD_Enum = function () {
+            if (BE.AEVersion < 10.5) {
+                return TimecodeDisplayType;
+            } else {
+                return TimeDisplayType;
+            }
+        },
+
+        /**
          * TODO
          */
-        getTimeDisplayType = function () {
+        getTCD = function () {
             if (BE.AEVersion < 10.5) {
                 return app.project.timecodeDisplayType;
             } else {
                 return app.project.timeDisplayType;
             }
         };
+
+    /**
+     * Gets the current Timecode Display Type based upon whether or not the
+     * user's After Effects version is less than CS5.5 since the
+     * timecodeDisplayType property of the project object was changed to
+     * timeDisplayType in CS5.5.
+     * @return {String} Returns "FRAMES" or "TIMECODE" depending upon what the
+     * current timecode display type is.
+     * TODO:
+     *  Needs Feet and frames
+     */
+    this.getTimeDisplayType = function () {
+        if (BE.AEVersion < 10.5) {
+            return app.project.timecodeDisplayType;
+        } else {
+            return app.project.timeDisplayType;
+        }
+    };
+
+    /**
+     * Sets the TimecodeDisplayType (or TimeDisplayType) enum regardless of the
+     * AE version the user is running.
+     * @param {String} t The type of timecode display to use. Valid values are
+     * "FRAMES" or "TIMECODE". For maximum usability, this value is not
+     * case-sensitive.
+     * @returns Nothing.
+     * TODO:
+     *  Needs to include Feet and frames.
+     */
+    this.setTimeDisplayType = function (t) {
+        var d = getTCD();
+        t = t.toLowerCase();
+
+        if (t === "frames") {
+            tcd = d.tcd_enum.FRAMES;
+        } else if (t === "timecode") {
+            tcd = d.tcd_enum.TIMECODE;
+        }
+    };
 
     //The display type enum is different starting with CS5.5. We'll use an
     //internal enum that is set based upon the current AE version.
@@ -43,7 +93,7 @@ BE.provide('BE.time', "0.1.0 dev", function () {
         };
     } else {
         this.TimeDisplayType = {
-            FRAMES: TimeDisplayType.Frames,
+            FRAMES: TimeDisplayType.FRAMES,
             TIMECODE: TimeDisplayType.TIMECODE
         };
     }
