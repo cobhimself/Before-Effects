@@ -6,6 +6,7 @@
 */
 
 BE.require('BE.prototypes');
+BE.require('BE.time');
 
 /**
  *Contains composition helper methods that provide more functionality than
@@ -179,6 +180,32 @@ BE.provide('BE.comp', "0.1.0 dev", function () {
             log.debug("Returning False");
             return false;
         }
+    };
+
+    /**
+     * Grabs the time in seconds while maintaining the user's current timecode
+     * settings.
+     * @param {Comp} c The composition to get the current time in seconds from.
+     * @returns {Float|Int} The time in seconds.
+     */
+    this.getTimeInSeconds = function (c) {
+        return BE.time.withTimecodeRemembered("timecode",
+            function () {
+                return timeToCurrentFormat(c.time, c.frameRate, true);
+            });
+    };
+
+    /**
+     * Grabs the time in frames while maintaining the user's current timecode
+     * settings.
+     * @param {Comp} c The composition to get the current time in frames from.
+     * @returns {String|Int} The time in seconds.
+     */
+    this.getTimeInFrames = function (c) {
+        return BE.time.withTimecodeRemembered("frames",
+            function () {
+                return timeToCurrentFormat(c.time, c.frameRate, true);
+            });
     };
 
     return this;
