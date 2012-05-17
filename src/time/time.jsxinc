@@ -18,6 +18,28 @@ BE.provide('BE.time', "0.1.0 dev", function () {
      * A pointer to BE.time.
      */
     var that = this,
+        TCD = null,
+        TCD_enum = null,
+        /**
+         * Checks to make sure the given string is a valid option for the
+         * setTCD function.
+         * @param {String} t A string representing the type of timecode to use.
+         * "TIMECODE" or "FRAMES". Case is not sensitive.
+         * @returns {Bool} True if the given string is a valid timecode option.
+         * Return is never seen if the given string is not valid because an
+         * exception is raised.
+         * @throws BE.time.error.NON_VALID_TIMECODE_STRING.
+         */
+        validTCDString = function (t) {
+            t = t.toLowerCase();
+
+            if (t !== "frames" || t !== "timecode") {
+                throw that.error.NON_VALID_TIMECODE_STRING;
+            } else {
+                return true;
+            }
+        },
+
         /**
          * Helper function that returns the TimecodeDisplayType or
          * TimeDisplayType enum regardless of AE version.
@@ -27,41 +49,83 @@ BE.provide('BE.time', "0.1.0 dev", function () {
          * having to check for AE version.
          */
         getTCD_Enum = function () {
-            if (BE.AEVersion < 10.5) {
-                return TimecodeDisplayType;
-            } else {
-                return TimeDisplayType;
+            //If the TCD has already been found... return.
+            if (TCD_enum) {
+                return TCD;
             }
+
+            TCD_enum = (BE.AEVersion < 10.5) ? TimecodeDisplayType : TimeDisplayType;
+            return TCD_enum;
         },
 
         /**
-         * TODO
+         * Helper function that returns the project.TimecodeDisplayType or
+         * project.TimeDisplayType value regardless of AE version.
+         * @returns {app.project.TimecodeDisplayType|app.project.TimeDisplayType} A
+         * pointer to either TimecodeDisplayType or TimeDisplayType depending
+         * on the user's AE version. Useful for accessing the current display
+         * type without having to check for AE version.
+         * TODO:
+         *  Needs Feet and frames
          */
         getTCD = function () {
+            if (TCD) {
+                return TCD;
+            }
+
+            TCD = (BE.AEVersion < 10.5) ? app.project.timecodeDisplayType : app.project.timeDisplayType;
+            return TCD;
+        },
+
+        /**
+         * Sets the app.project.timecodeDisplayType or
+         * app.project.timeDisplayType depending on whether or not the AE
+         * version is less than 10.5 since the constant was changed.
+         * @param {TimeDisplayType|TimecodeDisplayType} t The enum required to
+         * change the time code display type.
+         * @returns Nothing.
+         */
+        setTCD = function (t) {
             if (BE.AEVersion < 10.5) {
-                return app.project.timecodeDisplayType;
+                app.project.timecodeDisplayType = t;
             } else {
-                return app.project.timeDisplayType;
+                app.project.timeDisplayType = t;
             }
         };
 
     /**
-     * Gets the current Timecode Display Type based upon whether or not the
-     * user's After Effects version is less than CS5.5 since the
-     * timecodeDisplayType property of the project object was changed to
-     * timeDisplayType in CS5.5.
-     * @return {String} Returns "FRAMES" or "TIMECODE" depending upon what the
-     * current timecode display type is.
-     * TODO:
-     *  Needs Feet and frames
+     * Checks to see if the current timecode display type is equal to the given
+     * string regardless of the user's AE version.
+     * @param {String} t The type of timecode to check agains the current
+     * timecode display type. Either "FRAMES" or "TIMECODE". Case insensitive.
+     * @throws BE.time.error.NON_VALID_TIMECODE_STRING if given string is not a
+     * valid timecode string.
+     * @returns {Bool} True if the current timecode display type relates to the
+     * given string. False if not.
      */
-    this.getTimeDisplayType = function () {
-        if (BE.AEVersion < 10.5) {
-            return app.project.timecodeDisplayType;
-        } else {
-            return app.project.timeDisplayType;
+    this.timecodeDisplayTypeIs(t) {
+        if (validTCDString(t)) {
+            return (getTimeDisplayTypeString() === t) ? true : false;
         }
     };
+
+    /**
+     * Returns a string representation of the current timecode display type
+     * regardless of the AE version.
+     * @returns {String} "frames" if the project's timecode display type is
+     * in frames or "timecode" if the project's timecode display type is in
+     * seconds.
+     */
+    this.getTimeDisplayTypeString = function () {
+        var tcd = getTCD,
+            tcd_enum = getTCD_enum();
+        if (tcd === tcd_enum.FRAMES) {
+            return "frames";
+        } else if (tcd === tcd_enum.TIMECODE) {
+            return "timecode";
+        }
+    };
+
 
     /**
      * Sets the TimecodeDisplayType (or TimeDisplayType) enum regardless of the
@@ -74,73 +138,43 @@ BE.provide('BE.time', "0.1.0 dev", function () {
      *  Needs to include Feet and frames.
      */
     this.setTimeDisplayType = function (t) {
-        var d = getTCD();
-        t = t.toLowerCase();
+        if (validTCDString(t)) {
+            var d = getTCD_enum();
 
-        if (t === "frames") {
-            tcd = d.tcd_enum.FRAMES;
-        } else if (t === "timecode") {
-            tcd = d.tcd_enum.TIMECODE;
+            t = t.toLowerCase();
+
+            if (t === "frames") {
+                setTCD(d.FRAMES);
+            } else if (t === "timecode") {
+                setTCD(d.TIMECODE);
+            }
         }
-    };
-
-    //The display type enum is different starting with CS5.5. We'll use an
-    //internal enum that is set based upon the current AE version.
-    if (BE.AEVersion < 10.5) {
-        this.TimeDisplayType = {
-            FRAMES: TimecodeDisplayType.FRAMES,
-            TIMECODE: TimecodeDisplayType.TIMECODE
-        };
-    } else {
-        this.TimeDisplayType = {
-            FRAMES: TimeDisplayType.FRAMES,
-            TIMECODE: TimeDisplayType.TIMECODE
-        };
-    }
-
-    /**
-     * Grabs the time in seconds while maintaining the user's current timecode
-     * settings.
-     * @param {Comp} c The composition to get the current time in seconds from.
-     * @returns {Float|Int} The time in seconds.
-     */
-    this.getTimeInSeconds = function (c) {
-        return that.withTimecodeRemembered(that.TimeDisplayType.SECONDS,
-            function () {
-                return timeToCurrentFormat(c.time, c.frameRate, true);
-            });
-    };
-
-    /**
-     * Grabs the time in frames while maintaining the user's current timecode
-     * settings.
-     * @param {Comp} c The composition to get the current time in frames from.
-     * @returns {String|Int} The time in seconds.
-     */
-    this.getTimeInFrames = function (c) {
-        return that.withTimecodeRemembered(that.TimeDisplayType.FRAMES,
-            function () {
-                return timeToCurrentFormat(c.time, c.frameRate, true);
-            });
     };
 
     /**
      * Runs a provided function after setting the timecode display type to the
      * provided setting; it then resets the user's timecode display type to
      * what it was originally set at.
-     * @param {TimeDisplayType} t The TimeDisplayType enum to use.
+     * @param {String} t "frames" | "timecode".
      * @param {Function} f The function to run.
      * @returns The value returned by the provided function.
      */
     this.withTimecodeRemembered = function (t, f) {
-        var userTime = getTimeDisplayType(),
-            toReturn;
+        if (validTCDString(t)) {
+            var userTime = that.getTimeDisplayTypeString(),
+                toReturn;
 
-        app.project.timeDisplayType = t;
-        toReturn = f();
-        app.project.timeDisplayType = userTime;
+            //Set time display type using given string.
+            that.setTimeDisplayType(t);
 
-        return toReturn;
+            //Grab the return value from the user's function.
+            toReturn = f();
+
+            //Set the time display type back
+            that.setTimeDisplayType(userTime);
+
+            return toReturn;
+        }
     };
 
     return this;
