@@ -64,8 +64,8 @@ BE.provide('BE.layer', "0.1.0 dev", function () {
     };
 
     /**
-     * Grabs the time of a marker based upon an index. The time is returned
-     * in the current user time format.
+     * Grabs the time of a marker based upon an index.
+     * NOTE: The time is returned in the current user time format.
      * @param {Layer} l The layer to search for the marker on.
      * @param {Int} markerIndex The index of the marker whose time is to be
      * returned.
@@ -110,4 +110,3 @@ BE.provide('BE.layer', "0.1.0 dev", function () {
 
     return this;
 });
-
