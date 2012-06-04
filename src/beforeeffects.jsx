@@ -45,6 +45,13 @@ var BE = (function () {
     var that = this,
 
     /**
+     * Determines whether or not we are working in a development environment.
+     * If this is set to true, debug_ is set to 3 and ignoreVersions_ is set to true.
+     * Otherwise, debug is off and module versions are not ignored.
+     */
+    devEnv_ = true,
+
+    /**
      * Contains name/value pairs for where modules are included from relative
      * to {@link BE.BASE_PATH}.
      * @type {Object}
@@ -70,21 +77,30 @@ var BE = (function () {
 	 */
 	version_ = "0.1.0 dev",
 
-	/**
-	 * <p>The current debug level. Each level builds upon the previous
-	 * level. Errors are automatically output to the log. Possible values:
+
+	/** The current debug level. Each level builds upon the previous
+	 * level. Errors are automatically output to the log. This is set based
+     * upon the devEnv_ variable by default. It can be overwritten at any time
+     * but it is not recommended. Possible values:
 	 * <ul>
 	 * <li>0 - No information output to console</li>
 	 * <li>1 - Info output to the console</li>
 	 * <li>2 - Warnings and Info output to the console</li>
 	 * </ul>
-	 * </p>
 	 * @type {Number}
      * @private
      * @inner
 	 */
-	debug_ = 3,
+	debug_ = 0,
 
+    /**
+     * Whether or not to ignore module version numbers. This must be true to
+     * make sure BE code can be tested. If it is false, the modules are not
+     * overwritten when the version numbers are the same (which is the case
+     * when debugging code). This is set based upon the devEnv_ variable by
+     * default. It can be overwritten at any time but it is not recommened.
+     */
+    ignoreVersions_ = false,
 
     /**
      * Contains the defined dependencies defined from BE.require()
@@ -114,6 +130,38 @@ var BE = (function () {
     },
 
     /**
+     * Determines if version1 is greater than version2. Version strings are
+     * morphed into a comparable integers by removing everythign but digits.
+     * @param {String} version1 Version string to compare to the second given version.
+     * @param {String} version2 Version string to compare to the first given
+     * version.
+     * @example
+     *      isNewerVersion_("0.1.1 beta", "0.1.1 alpha"); // false
+     *      isNewerVersion_("0.1.0 beta", "0.1.1 beta"); // false
+     *      isNewerVersion_("0.2.1 beta", "0.2.0 alpha"); // true
+     *      isNewerVersion_("blah 0.2.1 beta", "0.2.0 alpha"); // true
+     * @returns {Bool} True if version1 is greater than version2, false
+     * otherwise.
+     */
+    isNewerVersion_ = function (version1, version2) {
+        //Ignore the version numbers? If so, return true automatically.
+        if (ignoreVersions_) {
+            return true;
+        }
+
+        var nonDigits = /[^\d]/g,
+            log = that.log;
+        log.debug("isNewerVersion(" + version1 + ", " + version2 + ")");
+
+        version1 = parseInt(version1.replace(nonDigits, ''), 10);
+        version2 = parseInt(version2.replace(nonDigits, ''), 10);
+
+        log.debug(version1 + " > " + version2 + ": " + (version1 > version2));
+
+        return (version1 > version2);
+    },
+
+    /**
      * Defines methods or properties of the given object path if they do not
      * exist.
      *
@@ -132,12 +180,15 @@ var BE = (function () {
             parent = obj || that,
             i, max;
 
+        //Get rid of "BE" from the object notation if it has been provided.
         if (parts[0] === "BE") {
             parts = parts.slice(1);
         }
 
         max = parts.length;
 
+        //Go through each of the parts of the object notation and make sure
+        //it exists.
         for (i = 0; i < max; i += 1) {
             //Create the property if it doesn't exist
             if (!that.isDef(parent[parts[i]])) {
@@ -153,11 +204,39 @@ var BE = (function () {
      * @param {String} name The name of the module, given in object notation
      * and starting with "BE." to register.
      * @param {String} version The version string for this module.
-     * @returns Nothing.
+     * @returns {Bool} True if the module was successfully registered. False if
+     * the module already exists and the given version number is not greater
+     * than the existing module's version.
      */
     registerModule_ = function (name, version) {
-        dependencies_.versions[name] = version;
+        var log = that.log,
+            v = dependencies_.versions[name];
+        log.debug('Attempting to register module: ' + name + ' ' + version);
+
+        if(!that.isDef(v)) {
+            log.debug('Registering module.');
+            //Add the given version
+            dependencies_.versions[name] = version;
+            return true;
+        } else {
+            //Module exists... Is this a newer version?
+            if(isNewerVersion_(version, v)) {
+                log.debug('Newer version (' + version + ') provided, registration complete');
+                //Add the given version
+                dependencies_.versions[name] = version;
+                return true;
+            } else {
+                log.debug(name + ' ' + version + ' was not registered because a newer version was not provided.');
+                return false;
+            }
+        }
     };
+
+    //Set the values of debug_ and ignoreVersions_:
+    if (devEnv_) {
+        debug_ = 3;
+        ignoreVersions_ = true;
+    }
 
     /*************************************************************************\
      * >>> Public Properties:
@@ -296,20 +375,24 @@ var BE = (function () {
      * @param {String} name The name of the object to define.
      * @param {Function} module The module, provided as a function that, when
      * ran will return the module to define.
-     * @returns {Object} The last object in the path.
+     * @returns {Bool} True if the object was provided. False if it wasn't.
      * @example
      * <code>BE.provide("BE.my.long.object.path");</code>
      * same as:
      * <code>BE = { my: { long: { object: { path: {}}}}};</code>
      */
     this.provide = function (name, version, module) {
+        //Make sure the object 'name' exists.
         exportPath_(name);
 
-        //Run the module that was sent since it is provided as a function
-        module.call(that.getObjectByName(name));
-
-        //Register the module's version
-        registerModule_(name, version);
+        //If the module is succesfully registered...
+        if (registerModule_(name, version)) {
+            //Run the module that was sent since it is provided as a function
+            module.call(that.getObjectByName(name));
+            return true;
+        } else {
+            return false;
+        }
     };
 
     /**
