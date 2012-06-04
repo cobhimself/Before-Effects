@@ -94,6 +94,13 @@ BE.provide('BE.time', "0.1.0 dev", function () {
         };
 
     /**
+     * Error object for the BE.time module.
+     */
+    this.ERROR = {
+        NON_VALID_TIMECODE_STRING: "An unrecognized time display string was given. Only \"frames\" or \"timecode\" are allowed."
+    },
+
+    /**
      * Checks to see if the current timecode display type is equal to the given
      * string regardless of the user's AE version.
      * @param {String} t The type of timecode to check agains the current
@@ -103,7 +110,7 @@ BE.provide('BE.time', "0.1.0 dev", function () {
      * @returns {Bool} True if the current timecode display type relates to the
      * given string. False if not.
      */
-    this.timecodeDisplayTypeIs(t) {
+    this.timecodeDisplayTypeIs = function (t) {
         if (validTCDString(t)) {
             return (getTimeDisplayTypeString() === t) ? true : false;
         }

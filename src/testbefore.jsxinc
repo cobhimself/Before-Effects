@@ -2,6 +2,7 @@
  * @fileoverview A unit testing suite for ExtendScript.
  * @author <a href="mailto:collin.brooks@gmail.com">Collin Brooks</a>
  * @version 0.1.0 dev
+  * TODO: Add ability to add a note to the output of a test.
  */
 
 /*jslint white: true, onevar: true, undef: true, newcap: true, regexp: true,
