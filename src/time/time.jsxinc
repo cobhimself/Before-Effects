@@ -19,7 +19,6 @@ BE.provide('BE.time', "0.1.0 dev", function () {
      * A pointer to BE.time.
      */
     var that = this,
-        TCD = null,
         TCD_enum = null,
         /**
          * Checks to make sure the given string is a valid option for the
@@ -50,9 +49,9 @@ BE.provide('BE.time', "0.1.0 dev", function () {
          * having to check for AE version.
          */
         getTCD_enum = function () {
-            //If the TCD has already been found... return.
+            //If the TCD_enum has already been found... return.
             if (BE.isDefAndNotNull(TCD_enum)) {
-                return TCD;
+                return TCD_enum;
             }
 
             TCD_enum = (BE.AEVersion < 10.5) ? TimecodeDisplayType : TimeDisplayType;
@@ -70,12 +69,9 @@ BE.provide('BE.time', "0.1.0 dev", function () {
          *  Needs Feet and frames
          */
         getTCD = function () {
-            if (TCD) {
-                return TCD;
-            }
-
-            TCD = (BE.AEVersion < 10.5) ? app.project.timecodeDisplayType : app.project.timeDisplayType;
-            return TCD;
+            return (BE.AEVersion < 10.5) ?
+                app.project.timecodeDisplayType :
+                app.project.timeDisplayType;
         },
 
         /**
@@ -103,22 +99,6 @@ BE.provide('BE.time', "0.1.0 dev", function () {
     };
 
     /**
-     * Checks to see if the current timecode display type is equal to the given
-     * string regardless of the user's AE version.
-     * @param {String} t The type of timecode to check agains the current
-     * timecode display type. Either "FRAMES" or "TIMECODE". Case insensitive.
-     * @throws BE.time.error.ILLEGAL_TIMECODE_STRING if given string is not a
-     * valid timecode string.
-     * @returns {Bool} True if the current timecode display type relates to the
-     * given string. False if not.
-     */
-    this.timecodeDisplayTypeIs = function (t) {
-        if (validTCDString(t)) {
-            return (that.getTimeDisplayTypeString() === t) ? true : false;
-        }
-    };
-
-    /**
      * Returns a string representation of the current timecode display type
      * regardless of the AE version.
      * @throws BE.time.error.ILLEGAL_TIMECODE_ENUM
@@ -128,17 +108,38 @@ BE.provide('BE.time', "0.1.0 dev", function () {
      */
     this.getTimeDisplayTypeString = function () {
         var toReturn,
-            tcd = getTCD,
+            tcd = getTCD(),
             tcd_enum = getTCD_enum();
         if (tcd === tcd_enum.FRAMES) {
             toReturn = "frames";
         } else if (tcd === tcd_enum.TIMECODE) {
             toReturn = "timecode";
         } else {
+            /** TODO: This error is thrown if feet and frames is the current
+             * timecode
+             */
             throw that.ERROR.ILLEGAL_TIMECODE_ENUM;
         }
+        return toReturn;
     };
 
+    /**
+     * Checks to see if the current timecode display type is equal to the given
+     * string regardless of the user's AE version.
+     * @param {String} t The type of timecode to check agains the current
+     * timecode display type. Either "FRAMES" or "TIMECODE". Case insensitive.
+     * @throws BE.time.error.ILLEGAL_TIMECODE_STRING if given string is not a
+     * valid timecode string.
+     * @returns {Bool} True if the current timecode display type relates to the
+     * given string. False if not.
+     */
+    this.timeDisplayTypeIs = function (t) {
+        if (validTCDString(t)) {
+            return (BE.time.getTimeDisplayTypeString() === t.toLowerCase()) ? true : false;
+        } else {
+            throw BE.time.error.ILLEGAL_TIMECODE_STRING;
+        }
+    };
 
     /**
      * Sets the TimecodeDisplayType (or TimeDisplayType) enum regardless of the
@@ -171,22 +172,28 @@ BE.provide('BE.time', "0.1.0 dev", function () {
      * @param {String} t "frames" | "timecode".
      * @param {Function} f The function to run.
      * @returns The value returned by the provided function.
+     * @throws BE.time.error.ILLEGAL_TIMECODE_STRING
      */
     this.withTimecodeRemembered = function (t, f) {
+        var time = BE.time,
+            userTime,
+            toReturn;
+
         if (validTCDString(t)) {
-            var userTime = that.getTimeDisplayTypeString(),
-                toReturn;
+            userTime = time.getTimeDisplayTypeString();
 
             //Set time display type using given string.
-            that.setTimeDisplayType(t);
+            time.setTimeDisplayType(t);
 
             //Grab the return value from the user's function.
             toReturn = f();
 
             //Set the time display type back
-            that.setTimeDisplayType(userTime);
+            time.setTimeDisplayType(userTime);
 
             return toReturn;
+        } else {
+            throw time.error.ILLEGAL_TIMECODE_STRING;
         }
     };
 
