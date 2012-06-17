@@ -232,12 +232,6 @@ var BE = (function () {
         }
     };
 
-    //Set the values of debug_ and ignoreVersions_:
-    if (devEnv_) {
-        debug_ = 3;
-        ignoreVersions_ = true;
-    }
-
     /*************************************************************************\
      * >>> Public Properties:
     \*************************************************************************/
@@ -259,6 +253,34 @@ var BE = (function () {
 	/*************************************************************************\
 	* >>> Public Methods
 	\*************************************************************************/
+
+    /**
+     * Allows the end user to set the development environment to be on or off.
+     * @param {Bool} o True if this is a development environment, false if it
+     * isn't.
+     * @returns Nothing.
+     */
+    this.setDevEnv_ = function (o) {
+        //Set the values of debug_ and ignoreVersions_:
+        devEnv_ = o;
+        if (devEnv_) {
+            debug_ = 3;
+            ignoreVersions_ = true;
+        } else {
+            debug_ = 0;
+            ignoreVersions_ = false;
+        }
+    };
+
+    /**
+     * Returns whether or not the current environment is set to be the
+     * development environment.
+     * @returns {Bool} True if this is a development environment, false if it
+     * is not.
+     */
+    this.isDevEnv_ = function () {
+        return devEnv_;
+    };
 
     /**
      * Imports the module defined by the given name path if it has not already
