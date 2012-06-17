@@ -221,7 +221,7 @@ var BE = (function () {
         } else {
             //Module exists... Is this a newer version?
             if(isNewerVersion_(version, v)) {
-                log.debug('Newer version (' + version + ') provided, registration complete');
+                log.debug('Newer version (' + version + ') provided, registration complete.');
                 //Add the given version
                 dependencies_.versions[name] = version;
                 return true;

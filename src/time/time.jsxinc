@@ -5,6 +5,8 @@
 * @version 0.1.0 dev
 */
 
+/*jslint sloppy: true */
+
 /**
  *Contains time helper methods that provide more functionality than the
  *original AE API.
@@ -13,7 +15,6 @@
  *@see BE
  */
 BE.provide('BE.time', "0.1.0 dev", function () {
-
     /**
      * A pointer to BE.time.
      */
@@ -28,13 +29,13 @@ BE.provide('BE.time', "0.1.0 dev", function () {
          * @returns {Bool} True if the given string is a valid timecode option.
          * Return is never seen if the given string is not valid because an
          * exception is raised.
-         * @throws BE.time.error.NON_VALID_TIMECODE_STRING.
+         * @throws BE.time.error.ILLEGAL_TIMECODE_STRING.
          */
         validTCDString = function (t) {
             t = t.toLowerCase();
 
-            if (t !== "frames" || t !== "timecode") {
-                throw that.error.NON_VALID_TIMECODE_STRING;
+            if (t !== "frames" && t !== "timecode") {
+                throw that.ERROR.ILLEGAL_TIMECODE_STRING;
             } else {
                 return true;
             }
@@ -48,9 +49,9 @@ BE.provide('BE.time', "0.1.0 dev", function () {
          * version. Useful for accessing the current display type without
          * having to check for AE version.
          */
-        getTCD_Enum = function () {
+        getTCD_enum = function () {
             //If the TCD has already been found... return.
-            if (TCD_enum) {
+            if (BE.isDefAndNotNull(TCD_enum)) {
                 return TCD;
             }
 
@@ -97,39 +98,44 @@ BE.provide('BE.time', "0.1.0 dev", function () {
      * Error object for the BE.time module.
      */
     this.ERROR = {
-        NON_VALID_TIMECODE_STRING: "An unrecognized time display string was given. Only \"frames\" or \"timecode\" are allowed."
-    },
+        ILLEGAL_TIMECODE_STRING: "An unrecognized time display string was given. Only \"frames\" or \"timecode\" are allowed.",
+        ILLEGAL_TIMECODE_ENUM: "An unrecognized time display enum was given."
+    };
 
     /**
      * Checks to see if the current timecode display type is equal to the given
      * string regardless of the user's AE version.
      * @param {String} t The type of timecode to check agains the current
      * timecode display type. Either "FRAMES" or "TIMECODE". Case insensitive.
-     * @throws BE.time.error.NON_VALID_TIMECODE_STRING if given string is not a
+     * @throws BE.time.error.ILLEGAL_TIMECODE_STRING if given string is not a
      * valid timecode string.
      * @returns {Bool} True if the current timecode display type relates to the
      * given string. False if not.
      */
     this.timecodeDisplayTypeIs = function (t) {
         if (validTCDString(t)) {
-            return (getTimeDisplayTypeString() === t) ? true : false;
+            return (that.getTimeDisplayTypeString() === t) ? true : false;
         }
     };
 
     /**
      * Returns a string representation of the current timecode display type
      * regardless of the AE version.
+     * @throws BE.time.error.ILLEGAL_TIMECODE_ENUM
      * @returns {String} "frames" if the project's timecode display type is
      * in frames or "timecode" if the project's timecode display type is in
      * seconds.
      */
     this.getTimeDisplayTypeString = function () {
-        var tcd = getTCD,
+        var toReturn,
+            tcd = getTCD,
             tcd_enum = getTCD_enum();
         if (tcd === tcd_enum.FRAMES) {
-            return "frames";
+            toReturn = "frames";
         } else if (tcd === tcd_enum.TIMECODE) {
-            return "timecode";
+            toReturn = "timecode";
+        } else {
+            throw that.ERROR.ILLEGAL_TIMECODE_ENUM;
         }
     };
 
